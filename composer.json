@@ -9,8 +9,7 @@
         "composer/composer": "^1",
         "composer/semver": "^1|^2|^3",
         "symfony/console": "^5"
-    }
-    ,
+    },
     "require-dev": {
         "roave/security-advisories": "dev-master",
         "phpstan/phpstan": "^0.12.32"
@@ -22,5 +21,13 @@
     },
     "extra": {
         "class": "Navarr\\Depends\\Plugin"
+    },
+    "archive": {
+        "exclude": [
+            ".github",
+            ".gitignore",
+            ".gitattributes",
+            ".env"
+        ]
     }
 }

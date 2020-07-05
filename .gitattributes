@@ -1,0 +1,4 @@
+.env export-ignore
+.gitignore export-ignore
+.github export-ignore
+.gitattributes export-ignore
