@@ -1,4 +1,5 @@
 # The @dependency Annotation
+![Static Analysis Test](https://github.com/navarr/dependency-annotation/workflows/Static%20Analysis%20Test/badge.svg)
 
 This project supplies a Composer plugin that adds a command (`why-block`) that interprets the PHP `@dependency`
  annotation.
