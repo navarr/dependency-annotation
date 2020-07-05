@@ -1,0 +1,21 @@
+name: Static Analysis Test
+on: [push]
+
+jobs:
+  phpstan:
+    name: Static Analysis Check
+    runs-on: ubuntu-latest
+    container:
+      image: davidalger/php:7.2
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v1
+
+      - name: Install Prestissimo
+        run: composer global require hirak/prestissimo
+
+      - name: Install Dependencies
+        run: composer install
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse src --level max
