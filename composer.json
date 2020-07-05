@@ -1,0 +1,26 @@
+{
+    "name": "navarr/dependency-annotation",
+    "description": "Adds extra functionality for interpreting the @dependency annotation",
+    "type": "composer-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^7.2",
+        "composer-plugin-api": "^1.0",
+        "composer/composer": "^1",
+        "composer/semver": "^1|^2|^3",
+        "symfony/console": "^5"
+    }
+    ,
+    "require-dev": {
+        "roave/security-advisories": "dev-master",
+        "phpstan/phpstan": "^0.12.32"
+    },
+    "autoload": {
+        "psr-4": {
+            "Navarr\\Depends\\": "src/"
+        }
+    },
+    "extra": {
+        "class": "Navarr\\Depends\\Plugin"
+    }
+}
