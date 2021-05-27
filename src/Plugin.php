@@ -27,6 +27,11 @@ class Plugin implements PluginInterface, Capable, CommandProvider
         /* No-op */
     }
 
+    public function deactivate(Composer $composer, IOInterface $io): void
+    {
+        /* No-op */
+    }
+
     public function getCapabilities(): array
     {
         return [
@@ -41,12 +46,7 @@ class Plugin implements PluginInterface, Capable, CommandProvider
         ];
     }
 
-    public function deactivate(Composer $composer, IOInterface $io)
-    {
-        /* No-op */
-    }
-
-    public function uninstall(Composer $composer, IOInterface $io)
+    public function uninstall(Composer $composer, IOInterface $io): void
     {
         /* No-op */
     }
