@@ -18,7 +18,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * @dependency composer/composer:^1 Extends BaseCommand
+ * @dependency composer/composer:^1|^2 Extends BaseCommand
  */
 class WhyBlockCommand extends BaseCommand
 {
