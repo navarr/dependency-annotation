@@ -16,7 +16,7 @@ use Attribute;
  * To do that, we can't use any PHP8 features EXCEPT for PHP8 Annotations.
  * We can still use those, because in older versions they'll be detected as comments, when single-line
  */
-#[Attribute]
+#[Attribute(Attribute::TARGET_ALL | Attribute::REPEATABLE)]
 class Dependency
 {
     public function __construct(
