@@ -17,13 +17,14 @@ use Navarr\Depends\Command\WhyBlockCommand;
 /**
  * In charge of registering everything our plugin needs
  *
- * @dependency composer-plugin-api:^1 Reliant Interfaces
- * @dependency composer/composer:^1 Existence of IOInterface and Composer class
+ * @dependency composer-plugin-api:^1|^2 Reliant Interfaces
+ * @dependency composer/composer:^1|^2 Existence of IOInterface and Composer class
  */
 class Plugin implements PluginInterface, Capable, CommandProvider
 {
     public function activate(Composer $composer, IOInterface $io): void
     {
+        /* No-op */
     }
 
     public function getCapabilities(): array
@@ -38,5 +39,15 @@ class Plugin implements PluginInterface, Capable, CommandProvider
         return [
             new WhyBlockCommand(),
         ];
+    }
+
+    public function deactivate(Composer $composer, IOInterface $io)
+    {
+        /* No-op */
+    }
+
+    public function uninstall(Composer $composer, IOInterface $io)
+    {
+        /* No-op */
     }
 }
