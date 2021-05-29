@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2020 Navarr Barnier. All Rights Reserved.
+ * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
 
 declare(strict_types=1);
@@ -12,27 +12,36 @@ use Composer\Composer;
 use Composer\Package\Link;
 use Composer\Package\PackageInterface;
 use Composer\Semver\Semver;
+use Navarr\Depends\Annotation\Dependency;
+use Navarr\Depends\Data\DeclaredDependency;
+use ReflectionAttribute;
+use ReflectionClass;
+use ReflectionClassConstant;
+use ReflectionMethod;
+use ReflectionParameter;
+use ReflectionProperty;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * @dependency composer/composer:^1|^2 Extends BaseCommand
- */
+#[Dependency('composer/composer', '^1|^2', 'Extends BaseCommand')]
 class WhyBlockCommand extends BaseCommand
 {
     private const ALL_DEPS = 'include-all-dependencies';
     private const ROOT_DEPS = 'include-root-dependencies';
+    private const LEGACY_ANNOTATION = 'include-legacy-annotations';
 
     private const INLINE_MATCH_PACKAGE = 2;
     private const INLINE_MATCH_VERSION = 3;
     private const INLINE_MATCH_REASON = 4;
 
-    /**
-     * @dependency symfony/console:^5 Command's setName, addArgument, addOption methods
-     * @dependency symfony/console:^5 InputArgument::REQUIRED and InputOption::VALUE_NONE
-     */
+    #[Dependency(
+        'symfony/console',
+        '^5',
+        'Command\'s setName, addArgument and addOption methods as well as InputArgument\'s constants of REQUIRED and 
+        VALUE_NONE',
+    )]
     protected function configure(): void
     {
         $this->setName('why-block')
@@ -54,15 +63,137 @@ class WhyBlockCommand extends BaseCommand
             );
     }
 
+    #[Dependency('symfony/console', '^5', 'InputInterface::getOption and OutputInterface::writeln')]
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output,
+    ): int {
+        // TODO process dependency separation
+
+        $packageToSearchFor = $input->getArgument('package');
+        $versionToCompareTo = $input->getArgument('version');
+
+        $classes = array_merge(
+            get_declared_classes(),
+            get_declared_interfaces(),
+            get_declared_traits()
+        );
+
+        /** @var DeclaredDependency[][] $attributesForMerge */
+        $attributesForMerge = [];
+
+        /** @var ReflectionClassConstant[] $allConstants */
+        $allConstants = [];
+
+        /** @var ReflectionMethod[] $allMethods */
+        $allMethods = [];
+
+        /** @var ReflectionProperty[] $allProperties */
+        $allProperties = [];
+
+        /** @var ReflectionParameter[] $allMethodParameters */
+        $allMethodParameters = [];
+
+        foreach (get_defined_functions()['user'] as $function) {
+            $reflection = new \ReflectionFunction($function);
+            $attributes = $reflection->getAttributes(Dependency::class);
+            $attributesForMerge[] = $this->processAttributes($attributes, reference: $function . '()');
+        }
+
+        foreach ($classes as $class) {
+            $reflection = new ReflectionClass($class);
+            $attributes = $reflection->getAttributes(Dependency::class);
+            $attributesForMerge[] = $this->processAttributes($attributes, reference: $class);
+
+            $allConstants[] = $reflection->getReflectionConstants();
+            $allMethods[] = $reflection->getMethods();
+            $allProperties[] = $reflection->getProperties();
+        }
+
+        foreach (array_merge(...$allConstants) as $constant) {
+            $attributesForMerge[] = $this->processAttributes(
+                $constant->getAttributes(Dependency::class),
+                reference: $constant->getDeclaringClass()->getName() . '::' . $constant->getName(),
+            );
+        }
+
+        foreach (array_merge(...$allMethods) as $method) {
+            $attributesForMerge[] = $this->processAttributes(
+                $method->getAttributes(Dependency::class),
+                reference: $method->getDeclaringClass()->getName() . '::' . $method->getName() . '()',
+            );
+            $allMethodParameters[] = $method->getParameters();
+        }
+
+        foreach (array_merge(...$allMethodParameters) as $parameter) {
+            $attributesForMerge[] = $this->processAttributes(
+                $parameter->getAttributes(Dependency::class),
+                reference: $parameter->getDeclaringClass()->getName()
+                . '::' . $parameter->getDeclaringFunction()->getName()
+                . '($' . $parameter->getName() . ')',
+            );
+        }
+
+        foreach (array_merge(...$allProperties) as $property) {
+            $attributesForMerge[] = $this->processAttributes(
+                $property->getAttributes(Dependency::class),
+                reference: $property->getDeclaringClass()->getName() . '::$' . $property->getName(),
+            );
+        }
+
+        /** @var DeclaredDependency[] $attributes */
+        $attributes = array_merge(...$attributesForMerge);
+
+        /** @var DeclaredDependency[] $failingAttributes Declarations of the provided package that don't match the
+         * version requirement
+         */
+        $failingAttributes = array_filter(
+            $attributes,
+            static function (DeclaredDependency $attribute) use ($packageToSearchFor, $versionToCompareTo) {
+                return strtolower($attribute->getPackage()) === strtolower($packageToSearchFor)
+                    && !Semver::satisfies($versionToCompareTo, $attribute->getVersion());
+            }
+        );
+
+        foreach ($failingAttributes as $failingAttribute) {
+            $output->writeln(
+                $failingAttribute->getReference()
+                . ': ' . $failingAttribute->getReason()
+                . ' (' . $failingAttribute->getVersion() . ')'
+            );
+        }
+
+        return 0;
+    }
+
     /**
-     * @dependency symfony/console:^5 InputInterface's getOption method
-     * @dependency symfony/console:^5 OutputInterface's writeln method
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int Exit code
+     * @param ReflectionAttribute[] $attributes
+     * @return DeclaredDependency[]
      */
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    private function processAttributes(
+        array $attributes,
+        ?string $reference = null,
+        ?string $file = null,
+        ?string $line = null,
+    ): array {
+        return array_map(
+            static function (ReflectionAttribute $attribute) use ($reference, $file, $line) {
+                /** @var Dependency $instance */
+                $instance = $attribute->newInstance();
+                return new DeclaredDependency(
+                    $file,
+                    $line,
+                    $reference,
+                    $instance->getPackage(),
+                    $instance->getVersionConstraint(),
+                    $instance->getReason(),
+                );
+            },
+            $attributes
+        );
+    }
+
+    protected function legacyExecute(InputInterface $input, OutputInterface $output): int
     {
         /** @var Composer $composer required indicates it can never be null. */
         $composer = $this->getComposer(true);

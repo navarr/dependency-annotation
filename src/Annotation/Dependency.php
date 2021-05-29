@@ -12,7 +12,7 @@ use Attribute;
 /**
  * Declares a dependency on another package
  */
-#[Attribute(Attribute::TARGET_ALL | Attribute::REPEATABLE)]
+#[Attribute(Attribute::TARGET_ALL | Attribute::IS_REPEATABLE)]
 class Dependency
 {
     public function __construct(
