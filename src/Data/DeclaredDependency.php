@@ -2,7 +2,7 @@
 
 namespace Navarr\Depends\Data;
 
-use Navarr\Depends\Annotation\Dependency;
+use Navarr\Attribute\Dependency;
 
 class DeclaredDependency
 {
@@ -36,7 +36,6 @@ class DeclaredDependency
      */
     private $version;
 
-    #[Dependency('php', '^8', 'Constructor property promotion')]
     public function __construct(
         ?string $file,
         ?string $line,

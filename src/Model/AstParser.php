@@ -2,11 +2,10 @@
 
 namespace Navarr\Depends\Model;
 
-use Navarr\Depends\Annotation\Dependency;
+use Navarr\Attribute\Dependency;
 use Navarr\Depends\Data\DeclaredDependency;
 use PhpParser\Node;
 use PhpParser\Node\Attribute;
-use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\FindingVisitor;
 use PhpParser\NodeVisitor\NameResolver;

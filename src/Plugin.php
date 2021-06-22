@@ -12,7 +12,7 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\Capability\CommandProvider;
 use Composer\Plugin\Capable;
 use Composer\Plugin\PluginInterface;
-use Navarr\Depends\Annotation\Dependency;
+use Navarr\Attribute\Dependency;
 use Navarr\Depends\Command\WhyBlockCommand;
 
 /**

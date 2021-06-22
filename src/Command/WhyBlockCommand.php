@@ -12,7 +12,7 @@ use Composer\Composer;
 use Composer\Package\Link;
 use Composer\Package\PackageInterface;
 use Composer\Semver\Semver;
-use Navarr\Depends\Annotation\Dependency;
+use Navarr\Attribute\Dependency;
 use Navarr\Depends\Data\DeclaredDependency;
 use Navarr\Depends\Model\AstParser;
 use Navarr\Depends\Model\LegacyParser;
@@ -44,15 +44,13 @@ class WhyBlockCommand extends BaseCommand
                 self::ROOT_DEPS,
                 ['r'],
                 InputOption::VALUE_NONE,
-                'Search root dependencies for the @dependency annotation',
-                null
+                'Search root dependencies for the @dependency annotation'
             )
             ->addOption(
                 self::ALL_DEPS,
                 ['a'],
                 InputOption::VALUE_NONE,
-                'Search all dependencies for the @dependency annotation',
-                null
+                'Search all dependencies for the @dependency annotation'
             );
     }
 
@@ -176,7 +174,7 @@ class WhyBlockCommand extends BaseCommand
             return $results;
         }
 
-        foreach ($files as $key => $value) {
+        foreach ($files as $value) {
             $path = realpath($dir . DIRECTORY_SEPARATOR . $value);
             if ($path === false) {
                 continue;
