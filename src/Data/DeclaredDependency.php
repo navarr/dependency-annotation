@@ -6,15 +6,51 @@ use Navarr\Depends\Annotation\Dependency;
 
 class DeclaredDependency
 {
+    /**
+     * @var string|null
+     */
+    private $file;
+
+    /**
+     * @var string|null
+     */
+    private $line;
+
+    /**
+     * @var string
+     */
+    private $package;
+
+    /**
+     * @var string|null
+     */
+    private $reason;
+
+    /**
+     * @var string|null
+     */
+    private $reference;
+
+    /**
+     * @var string|null
+     */
+    private $version;
+
     #[Dependency('php', '^8', 'Constructor property promotion')]
     public function __construct(
-        private ?string $file,
-        private ?string $line,
-        private ?string $reference,
-        private string $package,
-        private ?string $version,
-        private ?string $reason
+        ?string $file,
+        ?string $line,
+        ?string $reference,
+        string $package,
+        ?string $version,
+        ?string $reason
     ) {
+        $this->file = $file;
+        $this->line = $line;
+        $this->reference = $reference;
+        $this->package = $package;
+        $this->version = $version;
+        $this->reason = $reason;
     }
 
     public function getFile(): ?string

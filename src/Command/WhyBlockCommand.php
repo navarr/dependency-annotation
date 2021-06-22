@@ -14,12 +14,8 @@ use Composer\Package\PackageInterface;
 use Composer\Semver\Semver;
 use Navarr\Depends\Annotation\Dependency;
 use Navarr\Depends\Data\DeclaredDependency;
-use ReflectionAttribute;
-use ReflectionClass;
-use ReflectionClassConstant;
-use ReflectionMethod;
-use ReflectionParameter;
-use ReflectionProperty;
+use Navarr\Depends\Model\AstParser;
+use Navarr\Depends\Model\LegacyParser;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -32,33 +28,30 @@ class WhyBlockCommand extends BaseCommand
     private const ROOT_DEPS = 'include-root-dependencies';
     private const LEGACY_ANNOTATION = 'include-legacy-annotations';
 
-    private const INLINE_MATCH_PACKAGE = 2;
-    private const INLINE_MATCH_VERSION = 3;
-    private const INLINE_MATCH_REASON = 4;
-
-    #[Dependency(
-        'symfony/console',
-        '^5',
-        'Command\'s setName, addArgument and addOption methods as well as InputArgument\'s constants of REQUIRED and 
-        VALUE_NONE',
-    )]
+    #[Dependency('symfony/console', '^5', 'Command\'s setName, addArgument and addOption methods as well as InputArgument\'s constants of REQUIRED and VALUE_NONE',)]
     protected function configure(): void
     {
         $this->setName('why-block')
             ->addArgument('package', InputArgument::REQUIRED, 'Package to inspect')
             ->addArgument('version', InputArgument::REQUIRED, 'Version you want to update it to')
             ->addOption(
+                self::LEGACY_ANNOTATION,
+                ['l'],
+                InputOption::VALUE_NONE,
+                'Include old @dependency/@composerDependency annotations in search'
+            )
+            ->addOption(
                 self::ROOT_DEPS,
                 ['r'],
                 InputOption::VALUE_NONE,
-                'Whether or not to search root dependencies for the @dependency annotation',
+                'Search root dependencies for the @dependency annotation',
                 null
             )
             ->addOption(
                 self::ALL_DEPS,
                 ['a'],
                 InputOption::VALUE_NONE,
-                'Whether or not to search all dependencies for the @dependency annotation',
+                'Search all dependencies for the @dependency annotation',
                 null
             );
     }
@@ -66,135 +59,11 @@ class WhyBlockCommand extends BaseCommand
     #[Dependency('symfony/console', '^5', 'InputInterface::getOption and OutputInterface::writeln')]
     protected function execute(
         InputInterface $input,
-        OutputInterface $output,
+        OutputInterface $output
     ): int {
-        // TODO process dependency separation
-
         $packageToSearchFor = $input->getArgument('package');
         $versionToCompareTo = $input->getArgument('version');
 
-        $classes = array_merge(
-            get_declared_classes(),
-            get_declared_interfaces(),
-            get_declared_traits()
-        );
-
-        /** @var DeclaredDependency[][] $attributesForMerge */
-        $attributesForMerge = [];
-
-        /** @var ReflectionClassConstant[] $allConstants */
-        $allConstants = [];
-
-        /** @var ReflectionMethod[] $allMethods */
-        $allMethods = [];
-
-        /** @var ReflectionProperty[] $allProperties */
-        $allProperties = [];
-
-        /** @var ReflectionParameter[] $allMethodParameters */
-        $allMethodParameters = [];
-
-        foreach (get_defined_functions()['user'] as $function) {
-            $reflection = new \ReflectionFunction($function);
-            $attributes = $reflection->getAttributes(Dependency::class);
-            $attributesForMerge[] = $this->processAttributes($attributes, reference: $function . '()');
-        }
-
-        foreach ($classes as $class) {
-            $reflection = new ReflectionClass($class);
-            $attributes = $reflection->getAttributes(Dependency::class);
-            $attributesForMerge[] = $this->processAttributes($attributes, reference: $class);
-
-            $allConstants[] = $reflection->getReflectionConstants();
-            $allMethods[] = $reflection->getMethods();
-            $allProperties[] = $reflection->getProperties();
-        }
-
-        foreach (array_merge(...$allConstants) as $constant) {
-            $attributesForMerge[] = $this->processAttributes(
-                $constant->getAttributes(Dependency::class),
-                reference: $constant->getDeclaringClass()->getName() . '::' . $constant->getName(),
-            );
-        }
-
-        foreach (array_merge(...$allMethods) as $method) {
-            $attributesForMerge[] = $this->processAttributes(
-                $method->getAttributes(Dependency::class),
-                reference: $method->getDeclaringClass()->getName() . '::' . $method->getName() . '()',
-            );
-            $allMethodParameters[] = $method->getParameters();
-        }
-
-        foreach (array_merge(...$allMethodParameters) as $parameter) {
-            $attributesForMerge[] = $this->processAttributes(
-                $parameter->getAttributes(Dependency::class),
-                reference: $parameter->getDeclaringClass()->getName()
-                . '::' . $parameter->getDeclaringFunction()->getName()
-                . '($' . $parameter->getName() . ')',
-            );
-        }
-
-        foreach (array_merge(...$allProperties) as $property) {
-            $attributesForMerge[] = $this->processAttributes(
-                $property->getAttributes(Dependency::class),
-                reference: $property->getDeclaringClass()->getName() . '::$' . $property->getName(),
-            );
-        }
-
-        /** @var DeclaredDependency[] $attributes */
-        $attributes = array_merge(...$attributesForMerge);
-
-        /** @var DeclaredDependency[] $failingAttributes Declarations of the provided package that don't match the
-         * version requirement
-         */
-        $failingAttributes = array_filter(
-            $attributes,
-            static function (DeclaredDependency $attribute) use ($packageToSearchFor, $versionToCompareTo) {
-                return strtolower($attribute->getPackage()) === strtolower($packageToSearchFor)
-                    && !Semver::satisfies($versionToCompareTo, $attribute->getVersion());
-            }
-        );
-
-        foreach ($failingAttributes as $failingAttribute) {
-            $output->writeln(
-                $failingAttribute->getReference()
-                . ': ' . $failingAttribute->getReason()
-                . ' (' . $failingAttribute->getVersion() . ')'
-            );
-        }
-
-        return 0;
-    }
-
-    /**
-     * @param ReflectionAttribute[] $attributes
-     * @return DeclaredDependency[]
-     */
-    private function processAttributes(
-        array $attributes,
-        ?string $reference = null,
-        ?string $file = null,
-        ?string $line = null,
-    ): array {
-        return array_map(
-            static function (ReflectionAttribute $attribute) use ($reference, $file, $line) {
-                /** @var Dependency $instance */
-                $instance = $attribute->newInstance();
-                return new DeclaredDependency(
-                    $file,
-                    $line,
-                    $reference,
-                    $instance->getPackage(),
-                    $instance->getVersionConstraint(),
-                    $instance->getReason(),
-                );
-            },
-            $attributes
-        );
-    }
-
-    protected function legacyExecute(InputInterface $input, OutputInterface $output): int
-    {
         /** @var Composer $composer required indicates it can never be null. */
         $composer = $this->getComposer(true);
 
@@ -229,94 +98,46 @@ class WhyBlockCommand extends BaseCommand
             $results = static::getAllFilesForAutoload($path, $package->getAutoload(), $results);
         }
 
-        $found = false;
-        foreach ($results as $file) {
-            $contents = file_get_contents($file);
-            if ($contents === false) {
-                continue;
-            }
-            $matches = [];
-
-            // Double slash comments
-            preg_match_all(
-                '#//\s+@(dependency|composerDependency)\s+([^:\s]+):(\S+)\s(.*)?(?=$)#im',
-                $contents,
-                $matches,
-                PREG_OFFSET_CAPTURE
-            );
-            $found = $this->processMatches($matches, $input, $contents, $output, $file);
-
-            // Slash asterisk comments.  We're cheating here and only using an asterisk as indicator.  False
-            // positives possible.
-            preg_match_all(
-                '#\*\s+@(dependency|composerDependency)\s+([^:]+):(\S+) ?(.*)$#im',
-                $contents,
-                $matches,
-                PREG_OFFSET_CAPTURE
-            );
-            $found = $this->processMatches($matches, $input, $contents, $output, $file) || $found;
+        $parsers = [];
+        $parsers[] = new AstParser();
+        if ($input->getOption(self::LEGACY_ANNOTATION)) {
+            $parsers[] = new LegacyParser();
         }
 
-        if (!$found) {
-            /** @var string $package */
+        $attributes = [[]];
+        foreach ($results as $file) {
+            foreach ($parsers as $parser) {
+                $attributes[] = $parser->parse($file);
+            }
+        }
+        $attributes = array_merge(...$attributes);
+
+        /** @var DeclaredDependency[] $failingAttributes Declarations of the provided package that don't match the
+         * version requirement
+         */
+        $failingAttributes = array_filter(
+            $attributes,
+            static function (DeclaredDependency $attribute) use ($packageToSearchFor, $versionToCompareTo) {
+                return strtolower($attribute->getPackage()) === strtolower($packageToSearchFor)
+                    && !Semver::satisfies($versionToCompareTo, $attribute->getVersion());
+            }
+        );
+
+        foreach ($failingAttributes as $failingAttribute) {
+            $output->writeln(
+                str_replace(getcwd().'/', '', $failingAttribute->getReference())
+                . ': ' . $failingAttribute->getReason()
+                . ' (' . $failingAttribute->getVersion() . ')'
+            );
+        }
+
+        if (count($failingAttributes) < 1) {
             $package = $input->getArgument('package');
-            $output->writeln('We found no documented reason for ' . $package . ' being blocked.');
+            $version = $input->getArgument('version');
+            $output->writeln("We found no documented reason for {$package} v{$version} being blocked.");
         }
 
         return 0;
-    }
-
-    /**
-     * Process any potential matches after a Regex Search for dependency annotations
-     *
-     * @param array<array> $matches Output of {@see preg_match_all} with PREG_OFFSET_CAPTURE flag set
-     * @param InputInterface $input
-     * @param string $contents Entire contents of a PHP file
-     * @param OutputInterface $output
-     * @param string $file Filename
-     * @return bool Whether or not any matches were found in the file
-     */
-    protected function processMatches(
-        array $matches,
-        InputInterface $input,
-        string $contents,
-        OutputInterface $output,
-        string $file
-    ): bool {
-        $found = false;
-
-        $matchCount = count($matches[0]) ?? 0;
-        for ($match = 0; $match < $matchCount; ++$match) {
-            $package = strtolower($matches[static::INLINE_MATCH_PACKAGE][$match][0]);
-            if ($package !== $input->getArgument('package')) {
-                continue;
-            }
-
-            /** @var string $version */
-            $version = $input->getArgument('version');
-
-            // @dependency composer/semver:^1|^2|^3 We need the Semver::satisfies static method
-            if (Semver::satisfies($version, $matches[static::INLINE_MATCH_VERSION][$match][0])) {
-                continue;
-            }
-
-            $found = true;
-
-            $pos = $matches[0][$match][1];
-            $line = substr_count(mb_substr($contents, 0, $pos), "\n") + 1;
-
-            $reason = trim($matches[static::INLINE_MATCH_REASON][$match][0]) ?? 'No reason provided';
-            if (substr($reason, -2) === '*/') {
-                $reason = trim(substr($reason, 0, -2));
-            }
-
-            $output->writeln(
-                $file . ':' . $line . ' ' .
-                $reason . ' ' .
-                '(' . $matches[static::INLINE_MATCH_VERSION][$match][0] . ')'
-            );
-        }
-        return $found;
     }
 
     /**

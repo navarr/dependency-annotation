@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Navarr\Depends\Annotation;
 
-use Attribute;
+use \Attribute;
 
 /**
  * Declares a dependency on another package

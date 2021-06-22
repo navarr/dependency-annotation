@@ -4,11 +4,12 @@
     "type": "composer-plugin",
     "license": "MIT",
     "require": {
-        "php": "^8.0",
+        "php": "^7.1",
         "composer-plugin-api": "^1|^2",
         "composer/composer": "^1|^2",
         "composer/semver": "^1|^2|^3",
-        "symfony/console": "^5"
+        "symfony/console": "^5",
+        "nikic/php-parser": "^4.10"
     },
     "require-dev": {
         "roave/security-advisories": "dev-master",
