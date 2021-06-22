@@ -13,6 +13,8 @@ use PhpParser\ParserFactory;
 
 class AstParser implements ParserInterface
 {
+    #[Dependency('nikic/php-parser', '^4')]
+    #[Dependency('navarr/attribute-dependency', '^1', 'Existence of Dependency attribute')]
     public function parse(string $file): array
     {
         $astParser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
