@@ -154,7 +154,13 @@ class WhyBlockCommand extends BaseCommand
                 if ($realDir === false) {
                     continue;
                 }
-                $results = static::getAllPhpFiles($realDir, $results);
+                if (is_file($realDir)) {
+                    $results[] = $realDir;
+                    continue;
+                }
+                if (is_dir($realDir)) {
+                    $results = static::getAllPhpFiles($realDir, $results);
+                }
             }
         }
         return $results;
@@ -182,7 +188,7 @@ class WhyBlockCommand extends BaseCommand
 
             if (!is_dir($path) && substr($path, -4) === '.php') {
                 $results[] = $path;
-            } elseif (!in_array($value, ['.', '..'])) {
+            } elseif (is_dir($path) && !in_array($value, ['.', '..'])) {
                 $results = static::getAllPhpFiles($path, $results);
             }
         }
