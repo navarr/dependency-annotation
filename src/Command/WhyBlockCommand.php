@@ -12,10 +12,13 @@ use Composer\Composer;
 use Composer\Package\Link;
 use Composer\Package\PackageInterface;
 use Composer\Semver\Semver;
+use InvalidArgumentException;
 use Navarr\Attribute\Dependency;
 use Navarr\Depends\Data\DeclaredDependency;
 use Navarr\Depends\Model\AstParser;
+use Navarr\Depends\Model\FailOnIssueHandler;
 use Navarr\Depends\Model\LegacyParser;
+use Navarr\Depends\Model\NotifyOnIssueHandler;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -27,6 +30,7 @@ class WhyBlockCommand extends BaseCommand
     private const ALL_DEPS = 'include-all-dependencies';
     private const ROOT_DEPS = 'include-root-dependencies';
     private const LEGACY_ANNOTATION = 'include-legacy-annotations';
+    private const FAIL_ON_ERROR = 'fail-on-error';
 
     #[Dependency('symfony/console', '^5', 'Command\'s setName, addArgument and addOption methods as well as InputArgument\'s constants of REQUIRED and VALUE_NONE',)]
     protected function configure(): void
@@ -34,6 +38,12 @@ class WhyBlockCommand extends BaseCommand
         $this->setName('why-block')
             ->addArgument('package', InputArgument::REQUIRED, 'Package to inspect')
             ->addArgument('version', InputArgument::REQUIRED, 'Version you want to update it to')
+            ->addOption(
+                self::FAIL_ON_ERROR,
+                ['f'],
+                InputOption::VALUE_NONE,
+                'Immediately fail on parsing errors'
+            )
             ->addOption(
                 self::LEGACY_ANNOTATION,
                 ['l'],
@@ -61,6 +71,17 @@ class WhyBlockCommand extends BaseCommand
     ): int {
         $packageToSearchFor = $input->getArgument('package');
         $versionToCompareTo = $input->getArgument('version');
+
+        if (!is_string($packageToSearchFor)) {
+            throw new InvalidArgumentException('Only one package is allowed');
+        }
+        if (!is_string($versionToCompareTo)) {
+            throw new InvalidArgumentException('Only one version is allowed');
+        }
+
+        $issueHandler = $input->getOption(self::FAIL_ON_ERROR)
+            ? new FailOnIssueHandler()
+            : new NotifyOnIssueHandler($output);
 
         /** @var Composer $composer required indicates it can never be null. */
         $composer = $this->getComposer(true);
@@ -102,6 +123,10 @@ class WhyBlockCommand extends BaseCommand
             $parsers[] = new LegacyParser();
         }
 
+        foreach ($parsers as $parser) {
+            $parser->setIssueHandler($issueHandler);
+        }
+
         $attributes = [[]];
         foreach ($results as $file) {
             foreach ($parsers as $parser) {
@@ -116,6 +141,9 @@ class WhyBlockCommand extends BaseCommand
         $failingAttributes = array_filter(
             $attributes,
             static function (DeclaredDependency $attribute) use ($packageToSearchFor, $versionToCompareTo) {
+                if ($attribute->getPackage() === null || $attribute->getVersion() === null) {
+                    return false;
+                }
                 return strtolower($attribute->getPackage()) === strtolower($packageToSearchFor)
                     && !Semver::satisfies($versionToCompareTo, $attribute->getVersion());
             }
@@ -123,15 +151,17 @@ class WhyBlockCommand extends BaseCommand
 
         foreach ($failingAttributes as $failingAttribute) {
             $output->writeln(
-                str_replace(getcwd().'/', '', $failingAttribute->getReference())
+                $failingAttribute->getReference() !== null
+                    ? str_replace(getcwd().'/', '', $failingAttribute->getReference())
+                    : 'Unknown File'
                 . ': ' . $failingAttribute->getReason()
                 . ' (' . $failingAttribute->getVersion() . ')'
             );
         }
 
         if (count($failingAttributes) < 1) {
-            $package = $input->getArgument('package');
-            $version = $input->getArgument('version');
+            $package = $packageToSearchFor;
+            $version = $versionToCompareTo;
             $output->writeln("We found no documented reason for {$package} v{$version} being blocked.");
         }
 

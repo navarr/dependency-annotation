@@ -16,4 +16,6 @@ interface ParserInterface
      * @return DeclaredDependency[]
      */
     public function parse(string $file): array;
+
+    public function setIssueHandler(IssueHandlerInterface $handler): void;
 }

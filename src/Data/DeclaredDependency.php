@@ -1,8 +1,11 @@
 <?php
+/**
+ * @copyright 2021 Navarr Barnier. All Rights Reserved.
+ */
+
+declare(strict_types=1);
 
 namespace Navarr\Depends\Data;
-
-use Navarr\Attribute\Dependency;
 
 class DeclaredDependency
 {
@@ -17,7 +20,7 @@ class DeclaredDependency
     private $line;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $package;
 
@@ -40,7 +43,7 @@ class DeclaredDependency
         ?string $file,
         ?string $line,
         ?string $reference,
-        string $package,
+        ?string $package,
         ?string $version,
         ?string $reason
     ) {

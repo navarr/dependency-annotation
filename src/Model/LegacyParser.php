@@ -1,4 +1,9 @@
 <?php
+/**
+ * @copyright 2021 Navarr Barnier. All Rights Reserved.
+ */
+
+declare(strict_types=1);
 
 namespace Navarr\Depends\Model;
 
@@ -10,9 +15,17 @@ class LegacyParser implements ParserInterface
     private const INLINE_MATCH_VERSION = 3;
     private const INLINE_MATCH_REASON = 4;
 
+    /** @var IssueHandlerInterface */
+    private $issueHandler;
+
     public function parse(string $file): array
     {
         $contents = file_get_contents($file);
+        if ($contents === false) {
+            $this->handleIssue("Could not read contents of file '{$file}'");
+            return [];
+        }
+
         $results = [[]];
 
         // Double slash comments
@@ -38,7 +51,7 @@ class LegacyParser implements ParserInterface
     }
 
     /**
-     * @param array $matches
+     * @param string[][] $matches
      * @param string $contents
      * @param string $file
      * @return DeclaredDependency[]
@@ -52,7 +65,7 @@ class LegacyParser implements ParserInterface
             $package = strtolower($matches[static::INLINE_MATCH_PACKAGE][$match][0]);
             $version = $matches[static::INLINE_MATCH_VERSION][$match][0];
 
-            $line = substr_count(mb_substr($contents, 0, $matches[0][$match][1]), "\n") + 1;
+            $line = substr_count(mb_substr($contents, 0, (int)$matches[0][$match][1]), "\n") + 1;
 
             $reason = trim($matches[static::INLINE_MATCH_REASON][$match][0]) ?? 'No reason provided';
             if (substr($reason, -2) === '*/') {
@@ -61,7 +74,7 @@ class LegacyParser implements ParserInterface
 
             $results[] = new DeclaredDependency(
                 $file,
-                $line,
+                (string)$line,
                 "{$file}:{$line}",
                 $package,
                 $version,
@@ -70,5 +83,17 @@ class LegacyParser implements ParserInterface
         }
 
         return $results;
+    }
+
+    public function setIssueHandler(IssueHandlerInterface $handler): void
+    {
+        $this->issueHandler = $handler;
+    }
+
+    private function handleIssue(string $description): void
+    {
+        if ($this->issueHandler !== null) {
+            $this->issueHandler->execute($description);
+        }
     }
 }

@@ -1,7 +1,13 @@
 <?php
+/**
+ * @copyright 2021 Navarr Barnier. All Rights Reserved.
+ */
+
+declare(strict_types=1);
 
 namespace Navarr\Depends\Model;
 
+use RuntimeException;
 use Navarr\Attribute\Dependency;
 use Navarr\Depends\Data\DeclaredDependency;
 use PhpParser\Node;
@@ -13,13 +19,16 @@ use PhpParser\ParserFactory;
 
 class AstParser implements ParserInterface
 {
+    /** @var IssueHandlerInterface|null */
+    private $issueHandler;
+
     #[Dependency('nikic/php-parser', '^4')]
     #[Dependency('navarr/attribute-dependency', '^1', 'Existence of Dependency attribute')]
     public function parse(string $file): array
     {
         $astParser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
         $nameResolver = new NameResolver(null, ['replaceNodes' => true]);
-        $finder = new FindingVisitor(static function (Node $node) use ($nameResolver) {
+        $finder = new FindingVisitor(static function (Node $node) {
             return $node instanceof Attribute
                 && $node->name->toString() === Dependency::class;
             }
@@ -30,7 +39,17 @@ class AstParser implements ParserInterface
         $traverser->addVisitor($finder);
 
         $code = file_get_contents($file);
+        if ($code === false) {
+            $this->handleIssue("Could not read contents of file '{$file}'");
+            return [];
+        }
+
         $ast = $astParser->parse($code);
+        if (is_null($ast)) {
+            $this->handleIssue("Could not parse contents of file '{$file}'");
+            return [];
+        }
+
         $traverser->traverse($ast);
 
         $attributes = $finder->getFoundNodes();
@@ -46,13 +65,16 @@ class AstParser implements ParserInterface
                 $attributes = [];
                 foreach ($node->args as $i => $arg) {
                     $name = $arg->name ?? $argIndex[$i];
+                    if (!is_string($name)) {
+                        throw new RuntimeException('Invalid value for Attribute argument name');
+                    }
                     if ($arg->value instanceof Node\Scalar\String_) {
                         $attributes[$name] = $arg->value->value;
                     }
                 }
                 return new DeclaredDependency(
                     $file,
-                    $node->getLine(),
+                    (string)$node->getLine(),
                     "{$file}:{$node->getLine()}",
                     $attributes['package'] ?? null,
                     $attributes['versionConstraint'] ?? null,
@@ -61,5 +83,17 @@ class AstParser implements ParserInterface
             },
             $attributes
         );
+    }
+
+    public function setIssueHandler(IssueHandlerInterface $handler): void
+    {
+        $this->issueHandler = $handler;
+    }
+
+    private function handleIssue(string $description): void
+    {
+        if ($this->issueHandler !== null) {
+            $this->issueHandler->execute($description);
+        }
     }
 }
