@@ -66,4 +66,4 @@ jobs:
         run: composer install
 
       - name: Check for Mutants
-        run: vendor/bin/infection --threads=$(nproc)
+        run: vendor/bin/infection --threads=$(nproc) --no-progress --logger-github
