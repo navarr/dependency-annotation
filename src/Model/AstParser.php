@@ -30,7 +30,7 @@ class AstParser implements ParserInterface
         string $file
     ): array {
         $astParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
-        $nameResolver = new NameResolver(null, ['replaceNodes' => true]);
+        $nameResolver = new NameResolver();
         $finder = new FindingVisitor(
             static function (Node $node) {
                 return $node instanceof Attribute
@@ -72,7 +72,7 @@ class AstParser implements ParserInterface
             static function (Attribute $node) use ($file, $argIndex): DeclaredDependency {
                 $attributes = [];
                 foreach ($node->args as $i => $arg) {
-                    $name = $arg->name ?? $argIndex[$i];
+                    $name = $arg->name->name ?? $argIndex[$i];
                     if (!is_string($name)) {
                         throw new RuntimeException('Invalid value for Attribute argument name');
                     }
@@ -80,11 +80,14 @@ class AstParser implements ParserInterface
                         $attributes[$name] = $arg->value->value;
                     }
                 }
+                if (!isset($attributes['package'])) {
+                    throw new RuntimeException('Could not detect package name');
+                }
                 return new DeclaredDependency(
                     $file,
                     (string)$node->getLine(),
                     "{$file}:{$node->getLine()}",
-                    $attributes['package'] ?? null,
+                    $attributes['package'],
                     $attributes['versionConstraint'] ?? null,
                     $attributes['reason'] ?? null
                 );

@@ -16,6 +16,8 @@ class AstParserTest extends TestCase
     const FILE_ATTRIBUTE_USAGE = '../data/attributeUsage.php';
     const FILE_INVALID = '../data/invalidAttributeUsage.php';
 
+    const ATTRIBUTE_USAGE_ATTRIBUTE_COUNT = 10;
+
     /**
      * @return DeclaredDependency[]
      */
@@ -32,7 +34,7 @@ class AstParserTest extends TestCase
     {
         $results = $this->getStandardResults();
 
-        $this->assertCount(7, $results);
+        $this->assertCount(self::ATTRIBUTE_USAGE_ATTRIBUTE_COUNT, $results);
         foreach ($results as $result) {
             $this->assertInstanceOf(DeclaredDependency::class, $result);
         }
@@ -56,6 +58,7 @@ class AstParserTest extends TestCase
             'Method Parameter Attribute',
             'Function Attribute',
             'Function Parameter Attribute',
+            'Mixed Parameter Order',
         ];
 
         foreach ($searchReasons as $searchReason) {
@@ -86,7 +89,9 @@ class AstParserTest extends TestCase
             '^4',
             '^5',
             '^6',
-            '^7'
+            '^7',
+            '^8',
+            '^9',
         ];
 
         foreach ($searchVersions as $searchVersion) {

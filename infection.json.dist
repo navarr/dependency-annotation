@@ -8,6 +8,18 @@
         "configDir": "."
     },
     "mutators": {
-        "@default": true
+        "@default": true,
+        "ConcatOperandRemoval": {
+            "ignore": [
+                "Navarr\\Depends\\Model\\AstParser::parse::55",
+                "Navarr\\Depends\\Model\\AstParser::parse::56"
+            ]
+        },
+        "Concat": {
+            "ignore": [
+                "Navarr\\Depends\\Model\\AstParser::parse::55",
+                "Navarr\\Depends\\Model\\AstParser::parse::56"
+            ]
+        }
     }
 }
