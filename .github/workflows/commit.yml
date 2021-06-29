@@ -1,4 +1,4 @@
-name: Static Analysis Test
+name: Continuous Integration
 on: [push]
 
 jobs:
