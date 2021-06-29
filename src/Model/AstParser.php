@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Navarr\Depends\Model;
 
+use PhpParser\ErrorHandler\Collecting;
 use RuntimeException;
 use Navarr\Attribute\Dependency;
 use Navarr\Depends\Data\DeclaredDependency;
@@ -38,15 +39,19 @@ class AstParser implements ParserInterface
         $traverser->addVisitor($nameResolver);
         $traverser->addVisitor($finder);
 
-        $code = file_get_contents($file);
+        $code = @file_get_contents($file);
         if ($code === false) {
             $this->handleIssue("Could not read contents of file '{$file}'");
             return [];
         }
 
-        $ast = $astParser->parse($code);
-        if (is_null($ast)) {
-            $this->handleIssue("Could not parse contents of file '{$file}'");
+        $errorCollector = new Collecting();
+
+        $ast = $astParser->parse($code, $errorCollector);
+        if ($errorCollector->hasErrors()) {
+            $description = "Could not parse contents of file '{$file}':" . PHP_EOL . ' - '
+                . implode(PHP_EOL . ' - ', $errorCollector->getErrors());
+            $this->handleIssue($description);
             return [];
         }
 

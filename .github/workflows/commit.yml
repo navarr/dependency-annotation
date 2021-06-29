@@ -2,6 +2,21 @@ name: Static Analysis Test
 on: [push]
 
 jobs:
+  phpunit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    container:
+      image: davidalger/php:8.0
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: composer2 install
+
+      - name: Test
+        run: vendor/bin/phpunit tests --testdox
+
   phpstan:
     name: Static Analysis Check
     runs-on: ubuntu-latest
@@ -9,7 +24,7 @@ jobs:
       image: davidalger/php:8.0
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Install Dependencies
         run: composer2 install
