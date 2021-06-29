@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
@@ -25,13 +26,15 @@ class AstParser implements ParserInterface
 
     #[Dependency('nikic/php-parser', '^4')]
     #[Dependency('navarr/attribute-dependency', '^1', 'Existence of Dependency attribute')]
-    public function parse(string $file): array
-    {
-        $astParser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+    public function parse(
+        string $file
+    ): array {
+        $astParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $nameResolver = new NameResolver(null, ['replaceNodes' => true]);
-        $finder = new FindingVisitor(static function (Node $node) {
-            return $node instanceof Attribute
-                && $node->name->toString() === Dependency::class;
+        $finder = new FindingVisitor(
+            static function (Node $node) {
+                return $node instanceof Attribute
+                    && $node->name->toString() === Dependency::class;
             }
         );
 
@@ -62,7 +65,7 @@ class AstParser implements ParserInterface
         $argIndex = [
             0 => 'package',
             1 => 'versionConstraint',
-            2 => 'reason'
+            2 => 'reason',
         ];
 
         return array_map(

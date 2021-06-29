@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
@@ -21,8 +22,8 @@ use Navarr\Depends\Command\WhyBlockCommand;
  * @dependency composer-plugin-api:^1|^2 Reliant Interfaces
  * @dependency composer/composer:^1|^2 Existence of IOInterface and Composer class
  */
-#[Dependency('composer-plugin-api','^1|^2','Reliant Interfaces')]
-#[Dependency('composer/composer','^1|^2','Existence of IOInterface and Composer class')]
+#[Dependency('composer-plugin-api', '^1|^2', 'Reliant Interfaces')]
+#[Dependency('composer/composer', '^1|^2', 'Existence of IOInterface and Composer class')]
 class Plugin implements PluginInterface, Capable, CommandProvider
 {
     public function activate(Composer $composer, IOInterface $io): void

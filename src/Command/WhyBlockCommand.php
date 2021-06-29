@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
@@ -32,7 +33,8 @@ class WhyBlockCommand extends BaseCommand
     private const LEGACY_ANNOTATION = 'include-legacy-annotations';
     private const FAIL_ON_ERROR = 'fail-on-error';
 
-    #[Dependency('symfony/console', '^5', 'Command\'s setName, addArgument and addOption methods as well as InputArgument\'s constants of REQUIRED and VALUE_NONE',)]
+    // phpcs:ignore Generic.Files.LineLength.TooLong -- Attribute support pre PHP 8
+    #[Dependency('symfony/console', '^5', 'Command\'s setName, addArgument and addOption methods as well as InputArgument\'s constants of REQUIRED and VALUE_NONE')]
     protected function configure(): void
     {
         $this->setName('why-block')
@@ -152,7 +154,7 @@ class WhyBlockCommand extends BaseCommand
         foreach ($failingAttributes as $failingAttribute) {
             $output->writeln(
                 $failingAttribute->getReference() !== null
-                    ? str_replace(getcwd().'/', '', $failingAttribute->getReference())
+                    ? str_replace(getcwd() . '/', '', $failingAttribute->getReference())
                     : 'Unknown File'
                 . ': ' . $failingAttribute->getReason()
                 . ' (' . $failingAttribute->getVersion() . ')'
