@@ -44,6 +44,9 @@ jobs:
           coverage: xdebug
           tools: composer:v2
 
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
       - name: Install dependencies
         run: composer install
 
