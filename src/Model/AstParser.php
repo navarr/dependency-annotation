@@ -48,7 +48,7 @@ class AstParser implements ParserInterface
         $errorCollector = new Collecting();
 
         $ast = $astParser->parse($code, $errorCollector);
-        if ($errorCollector->hasErrors()) {
+        if ($ast === null || $errorCollector->hasErrors()) {
             $description = "Could not parse contents of file '{$file}':" . PHP_EOL . ' - '
                 . implode(PHP_EOL . ' - ', $errorCollector->getErrors());
             $this->handleIssue($description);
