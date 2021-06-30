@@ -5,17 +5,26 @@ jobs:
   phpunit:
     name: Unit Tests
     runs-on: ubuntu-latest
-    container:
-      image: davidalger/php:8.0
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.0
+          coverage: xdebug
+          tools: composer:v2
 
       - name: Install Dependencies
-        run: composer2 install
+        run: composer install
 
       - name: Test
-        run: vendor/bin/phpunit tests --testdox
+        run: vendor/bin/phpunit tests --testdox --coverage-clover coverage.xml
+        
+      - name: Upload to CodeCov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: true
 
   phpstan:
     name: Static Analysis Check
