@@ -1,5 +1,10 @@
 # The #[Dependency] Attribute
-![Static Analysis Test](https://github.com/navarr/dependency-annotation/workflows/Static%20Analysis%20Test/badge.svg)
+[![Latest Stable Version](http://poser.pugx.org/navarr/dependency-annotation/v)](https://packagist.org/packages/navarr/dependency-annotation)
+[![Total Downloads](http://poser.pugx.org/navarr/dependency-annotation/downloads)](https://packagist.org/packages/navarr/dependency-annotation)
+[![Latest Unstable Version](http://poser.pugx.org/navarr/dependency-annotation/v/unstable)](https://packagist.org/packages/navarr/dependency-annotation)
+[![License](http://poser.pugx.org/navarr/dependency-annotation/license)](https://packagist.org/packages/navarr/dependency-annotation)  
+![Tests](https://github.com/navarr/dependency-annotation/actions/workflows/commit.yml/badge.svg)
+![Code Coverage](https://codecov.io/gh/navarr/dependency-annotation/branch/main/graph/badge.svg?token=BHTKOZZDR3)
 
 This project supplies a Composer plugin that adds a command (`why-block`) that interprets a PHP `#[Dependency]`
  attribute.
