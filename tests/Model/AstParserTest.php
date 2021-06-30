@@ -3,7 +3,7 @@
  * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
 
-namespace Model;
+namespace Navarr\Depends\Test\Model;
 
 use Navarr\Depends\Data\DeclaredDependency;
 use Navarr\Depends\Model\AstParser;
@@ -131,5 +131,27 @@ class AstParserTest extends TestCase
         $this->expectExceptionMessageMatches("#^Could not parse contents of file#");
 
         $parser->parse($file);
+    }
+
+    public function testParserReturnsEmptyResultsOnNonExistentFile()
+    {
+        $file = __DIR__ . '/' . self::FILE_ATTRIBUTE_USAGE . '-not-found';
+
+        $parser = new AstParser();
+        $result = $parser->parse($file);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    public function testParserReturnsEmptyResultsOnInvalidFile()
+    {
+        $file = __DIR__ . '/' . self::FILE_INVALID;
+
+        $parser = new AstParser();
+        $result = $parser->parse($file);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
     }
 }
