@@ -20,4 +20,5 @@ class TestClassD { // @dependency example:^13 dependency with version in slash d
     /** @composerDependency example composerDependency without version in small doc */
     /** @composerDependency example:^12 */
     /** @composerDependency example */
+    /** @composerDependency example this is a test with the comment ending immediately after the reason*/
 }

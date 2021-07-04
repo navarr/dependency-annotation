@@ -27,7 +27,7 @@ class LegacyParserTest extends TestCase
         $results = $this->getStandardResults();
 
         $this->assertIsArray($results);
-        $this->assertCount(17, $results);
+        $this->assertCount(18, $results);
         foreach ($results as $result) {
             $this->assertInstanceOf(DeclaredDependency::class, $result);
         }
@@ -67,18 +67,21 @@ class LegacyParserTest extends TestCase
             'dependency without version in small doc',
             'composerDependency with version in small doc',
             'composerDependency without version in small doc',
-            'dependency with version in slash doc after other content'
+            'dependency with version in slash doc after other content',
+            'this is a test with the comment ending immediately after the reason',
         ];
+
+        $resultReasons = array_map(
+            static function (DeclaredDependency $dependency) {
+                return $dependency->getReason();
+            },
+            $results
+        );
 
         foreach ($reasons as $reason) {
             $this->assertContains(
                 $reason,
-                array_map(
-                    static function (DeclaredDependency $dependency) {
-                        return $dependency->getReason();
-                    },
-                    $results
-                )
+                $resultReasons
             );
         }
     }
