@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace Navarr\Depends\Model;
 
 use PhpParser\ErrorHandler\Collecting;
-use RuntimeException;
 use Navarr\Attribute\Dependency;
 use Navarr\Depends\Data\DeclaredDependency;
 use PhpParser\Node;
@@ -68,31 +67,33 @@ class AstParser implements ParserInterface
             2 => 'reason',
         ];
 
-        return array_map(
-            static function (Attribute $node) use ($file, $argIndex): DeclaredDependency {
-                $attributes = [];
-                foreach ($node->args as $i => $arg) {
-                    $name = $arg->name->name ?? $argIndex[$i];
-                    if (!is_string($name)) {
-                        throw new RuntimeException('Invalid value for Attribute argument name');
+        return array_filter(
+            array_map(
+                static function (Attribute $node) use ($file, $argIndex): ?DeclaredDependency {
+                    $attributes = [];
+                    foreach ($node->args as $i => $arg) {
+                        $name = $arg->name->name ?? $argIndex[$i];
+                        if (!is_string($name)) {
+                            return null;
+                        }
+                        if ($arg->value instanceof Node\Scalar\String_) {
+                            $attributes[$name] = $arg->value->value;
+                        }
                     }
-                    if ($arg->value instanceof Node\Scalar\String_) {
-                        $attributes[$name] = $arg->value->value;
+                    if (!isset($attributes['package'])) {
+                        return null;
                     }
-                }
-                if (!isset($attributes['package'])) {
-                    throw new RuntimeException('Could not detect package name');
-                }
-                return new DeclaredDependency(
-                    $file,
-                    (string)$node->getLine(),
-                    "{$file}:{$node->getLine()}",
-                    $attributes['package'],
-                    $attributes['versionConstraint'] ?? null,
-                    $attributes['reason'] ?? null
-                );
-            },
-            $attributes
+                    return new DeclaredDependency(
+                        $file,
+                        (string)$node->getLine(),
+                        "{$file}:{$node->getLine()}",
+                        $attributes['package'],
+                        $attributes['versionConstraint'] ?? null,
+                        $attributes['reason'] ?? null
+                    );
+                },
+                $attributes
+            )
         );
     }
 

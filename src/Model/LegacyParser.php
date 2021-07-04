@@ -12,36 +12,32 @@ use Navarr\Depends\Data\DeclaredDependency;
 
 class LegacyParser implements ParserInterface
 {
-    private const INLINE_MATCH_PACKAGE = 2;
-    private const INLINE_MATCH_VERSION = 3;
-    private const INLINE_MATCH_REASON = 4;
+    private const INLINE_MATCH_PACKAGE = 3;
+    private const INLINE_MATCH_VERSION = 5;
+    private const INLINE_MATCH_REASON = 7;
 
     /** @var IssueHandlerInterface */
     private $issueHandler;
 
     public function parse(string $file): array
     {
-        $contents = file_get_contents($file);
+        $contents = @file_get_contents($file);
         if ($contents === false) {
             $this->handleIssue("Could not read contents of file '{$file}'");
             return [];
         }
 
-        $results = [[]];
+        // We can leave this as an empty array b/c processMatches returns _at least_ an empty array
+        // Otherwise, array_merge will fail
+        $results = [];
 
         // Double slash comments
         preg_match_all(
-            '#//\s+@(dependency|composerDependency)\s+([^:\s]+):(\S+)\s(.*)?(?=$)#im',
-            $contents,
-            $matches,
-            PREG_OFFSET_CAPTURE
-        );
-        $results[] = $this->processMatches($matches, $contents, $file);
-
-        // Slash asterisk comments.  We're cheating here and only using an asterisk as indicator.  False
-        // positives possible.
-        preg_match_all(
-            '#\*\s+@(dependency|composerDependency)\s+([^:]+):(\S+) ?(.*)$#im',
+            '#(^\h*\*+|\h*//|\h*/\*+)\s+' .
+            '@(dependency|composerDependency)\h+' .
+            '([\w/-]+)' .
+            '(:([!~\d^|&,<>=\-\w.]+))?' .
+            '(\h+([^\v]+))?#im',
             $contents,
             $matches,
             PREG_OFFSET_CAPTURE

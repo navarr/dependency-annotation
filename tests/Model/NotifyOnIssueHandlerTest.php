@@ -7,6 +7,7 @@ namespace Navarr\Depends\Test\Model;
 
 use Navarr\Depends\Model\NotifyOnIssueHandler;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class NotifyOnIssueHandlerTest extends TestCase
@@ -19,6 +20,23 @@ class NotifyOnIssueHandlerTest extends TestCase
         $outputMock->expects($this->once())
             ->method('writeln')
             ->with($this->equalTo("<error>{$description}</error>"));
+
+        $handler = new NotifyOnIssueHandler($outputMock);
+        $handler->execute($description);
+    }
+
+    public function testErrorOutputUsedIfExists()
+    {
+        $description = uniqid();
+
+        $errorOutputMock = $this->createMock(OutputInterface::class);
+        $errorOutputMock->expects($this->once())
+            ->method('writeln')
+            ->with($this->equalTo("<error>{$description}</error>"));
+
+        $outputMock = $this->createMock(ConsoleOutputInterface::class);
+        $outputMock->method('getErrorOutput')
+            ->willReturn($errorOutputMock);
 
         $handler = new NotifyOnIssueHandler($outputMock);
         $handler->execute($description);

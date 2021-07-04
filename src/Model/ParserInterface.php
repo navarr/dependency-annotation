@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Navarr\Depends\Model;
 
+use JetBrains\PhpStorm\ArrayShape;
 use Navarr\Depends\Data\DeclaredDependency;
 
 interface ParserInterface
@@ -16,6 +17,7 @@ interface ParserInterface
      * @param string $file
      * @return DeclaredDependency[]
      */
+    #[ArrayShape([DeclaredDependency::class])]
     public function parse(string $file): array;
 
     public function setIssueHandler(IssueHandlerInterface $handler): void;

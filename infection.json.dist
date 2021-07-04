@@ -12,13 +12,13 @@
         "ConcatOperandRemoval": {
             "ignore": [
                 "Navarr\\Depends\\Model\\AstParser::parse::55",
-                "Navarr\\Depends\\Model\\AstParser::parse::56"
+                "Navarr\\Depends\\Model\\AstParser::parse::54"
             ]
         },
         "Concat": {
             "ignore": [
                 "Navarr\\Depends\\Model\\AstParser::parse::55",
-                "Navarr\\Depends\\Model\\AstParser::parse::56"
+                "Navarr\\Depends\\Model\\AstParser::parse::54"
             ]
         }
     }

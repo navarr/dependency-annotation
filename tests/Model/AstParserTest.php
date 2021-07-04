@@ -13,10 +13,10 @@ use RuntimeException;
 
 class AstParserTest extends TestCase
 {
-    const FILE_ATTRIBUTE_USAGE = '../data/attributeUsage.php';
-    const FILE_INVALID = '../data/invalidAttributeUsage.php';
-
-    const ATTRIBUTE_USAGE_ATTRIBUTE_COUNT = 10;
+    private const EMPTY_FILE = '../data/emptyFile.php';
+    private const FILE_ATTRIBUTE_USAGE = '../data/attributeUsage.php';
+    private const FILE_INVALID = '../data/invalidAttributeUsage.php';
+    private const ATTRIBUTE_USAGE_ATTRIBUTE_COUNT = 10;
 
     /**
      * @return DeclaredDependency[]
@@ -34,6 +34,7 @@ class AstParserTest extends TestCase
     {
         $results = $this->getStandardResults();
 
+        $this->assertIsArray($results);
         $this->assertCount(self::ATTRIBUTE_USAGE_ATTRIBUTE_COUNT, $results);
         foreach ($results as $result) {
             $this->assertInstanceOf(DeclaredDependency::class, $result);
@@ -147,6 +148,28 @@ class AstParserTest extends TestCase
     public function testParserReturnsEmptyResultsOnInvalidFile()
     {
         $file = __DIR__ . '/' . self::FILE_INVALID;
+
+        $parser = new AstParser();
+        $result = $parser->parse($file);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    public function testParserGracefullyHandlesBadAttributeSyntax()
+    {
+        $file = __DIR__ . '/' . '../data/incorrectAttributeUsage.php';
+
+        $parser = new AstParser();
+        $result = $parser->parse($file);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    public function testEmptyFileReturnsEmptyResults()
+    {
+        $file = __DIR__ . '/' . self::EMPTY_FILE;
 
         $parser = new AstParser();
         $result = $parser->parse($file);

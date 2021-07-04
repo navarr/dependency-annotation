@@ -41,12 +41,12 @@ class DeclaredDependency
     private $version;
 
     public function __construct(
-        ?string $file,
-        ?string $line,
-        ?string $reference,
-        ?string $package,
-        ?string $version,
-        ?string $reason
+        ?string $file = null,
+        ?string $line = null,
+        ?string $reference = null,
+        ?string $package = null,
+        ?string $version = null,
+        ?string $reason = null
     ) {
         $this->file = $file;
         $this->line = $line;
