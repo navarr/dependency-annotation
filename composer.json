@@ -26,7 +26,10 @@
         }
     },
     "extra": {
-        "class": "Navarr\\Depends\\Plugin"
+        "class": "Navarr\\Depends\\Plugin",
+        "branch-alias": {
+            "dev-php8-annotation": "2.x-dev"
+        }
     },
     "archive": {
         "exclude": [
