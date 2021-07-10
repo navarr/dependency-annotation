@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
@@ -6,10 +7,8 @@
 namespace Navarr\Depends\Test\Model;
 
 use Navarr\Depends\Data\DeclaredDependency;
-use Navarr\Depends\Model\FailOnIssueHandler;
 use Navarr\Depends\Model\LegacyParser;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 class LegacyParserTest extends TestCase
 {
@@ -92,7 +91,18 @@ class LegacyParserTest extends TestCase
         $file = __DIR__ . '/' . self::EMPTY_FILE;
 
         $parser = new LegacyParser();
-        $result = $parser->parse($file);
+        $result = $parser->parse(file_get_contents($file));
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    public function testInvalidUnicodeContentGracefullyFails()
+    {
+        $content = "a\xff";
+
+        $parser = new LegacyParser();
+        $result = $parser->parse($content);
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
