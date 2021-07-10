@@ -19,7 +19,8 @@ class LegacyParserTest extends TestCase
     private function getStandardResults(): array
     {
         $parser = new LegacyParser();
-        return $parser->parse(__DIR__ . '/' . self::LEGACY_FILE);
+        $contents = file_get_contents(__DIR__ . '/' . self::LEGACY_FILE);
+        return $parser->parse($contents);
     }
 
     public function testParserFindsAllAttributes(): array
@@ -84,30 +85,6 @@ class LegacyParserTest extends TestCase
                 $resultReasons
             );
         }
-    }
-
-    public function testParserFailsOnFileNotFound()
-    {
-        $file = __DIR__ . '/' . self::LEGACY_FILE . '-not-found';
-
-        $parser = new LegacyParser();
-        $parser->setIssueHandler(new FailOnIssueHandler);
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage("Could not read contents of file '{$file}'");
-
-        $parser->parse($file);
-    }
-
-    public function testParserReturnsEmptyResultsOnNonExistentFile()
-    {
-        $file = __DIR__ . '/' . self::LEGACY_FILE . '-not-found';
-
-        $parser = new LegacyParser();
-        $result = $parser->parse($file);
-
-        $this->assertIsArray($result);
-        $this->assertEmpty($result);
     }
 
     public function testEmptyFileReturnsEmptyResults()

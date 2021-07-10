@@ -24,7 +24,8 @@ class AstParserTest extends TestCase
     private function getStandardResults(): array
     {
         $parser = new AstParser();
-        return $parser->parse(__DIR__ . '/' . self::FILE_ATTRIBUTE_USAGE);
+        $contents = file_get_contents(__DIR__ . '/' . self::FILE_ATTRIBUTE_USAGE);
+        return $parser->parse($contents);
     }
 
     /**
@@ -108,49 +109,27 @@ class AstParserTest extends TestCase
         }
     }
 
-    public function testParserFailsOnFileNotFound()
-    {
-        $file = __DIR__ . '/' . self::FILE_ATTRIBUTE_USAGE . '-not-found';
-
-        $parser = new AstParser();
-        $parser->setIssueHandler(new FailOnIssueHandler);
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage("Could not read contents of file '{$file}'");
-
-        $parser->parse($file);
-    }
-
     public function testParserFailsOnInvalidFile()
     {
         $file = __DIR__ . '/' . self::FILE_INVALID;
+        $contents = file_get_contents($file);
 
         $parser = new AstParser();
         $parser->setIssueHandler(new FailOnIssueHandler);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches("#^Could not parse contents of file#");
+        $this->expectExceptionMessageMatches("#^Could not parse contents#");
 
-        $parser->parse($file);
-    }
-
-    public function testParserReturnsEmptyResultsOnNonExistentFile()
-    {
-        $file = __DIR__ . '/' . self::FILE_ATTRIBUTE_USAGE . '-not-found';
-
-        $parser = new AstParser();
-        $result = $parser->parse($file);
-
-        $this->assertIsArray($result);
-        $this->assertEmpty($result);
+        $parser->parse($contents);
     }
 
     public function testParserReturnsEmptyResultsOnInvalidFile()
     {
         $file = __DIR__ . '/' . self::FILE_INVALID;
+        $contents = file_get_contents($file);
 
         $parser = new AstParser();
-        $result = $parser->parse($file);
+        $result = $parser->parse($contents);
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
@@ -159,9 +138,10 @@ class AstParserTest extends TestCase
     public function testParserGracefullyHandlesBadAttributeSyntax()
     {
         $file = __DIR__ . '/' . '../data/incorrectAttributeUsage.php';
+        $contents = file_get_contents($file);
 
         $parser = new AstParser();
-        $result = $parser->parse($file);
+        $result = $parser->parse($contents);
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
@@ -170,9 +150,10 @@ class AstParserTest extends TestCase
     public function testEmptyFileReturnsEmptyResults()
     {
         $file = __DIR__ . '/' . self::EMPTY_FILE;
+        $contents = file_get_contents($file);
 
         $parser = new AstParser();
-        $result = $parser->parse($file);
+        $result = $parser->parse($contents);
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
