@@ -26,7 +26,7 @@ class LegacyParser implements ParserInterface
         $results = [];
 
         // Double slash comments
-        preg_match_all(
+        $result = @preg_match_all(
             '#(^\h*\*+|\h*//|\h*/\*+)\s+' .
             '@(dependency|composerDependency)\h+' .
             '([\w/-]+)' .
@@ -36,6 +36,9 @@ class LegacyParser implements ParserInterface
             $matches,
             PREG_OFFSET_CAPTURE
         );
+        if ($result === false) {
+            $this->issueHandler->execute('Regex error: ' . preg_last_error_msg());
+        }
         $results[] = $this->processMatches($matches, $contents);
 
         return array_merge(...$results);
