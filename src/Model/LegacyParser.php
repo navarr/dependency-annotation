@@ -19,14 +19,8 @@ class LegacyParser implements ParserInterface
     /** @var IssueHandlerInterface */
     private $issueHandler;
 
-    public function parse(string $file): array
+    public function parse(string $contents): array
     {
-        $contents = @file_get_contents($file);
-        if ($contents === false) {
-            $this->handleIssue("Could not read contents of file '{$file}'");
-            return [];
-        }
-
         // We can leave this as an empty array b/c processMatches returns _at least_ an empty array
         // Otherwise, array_merge will fail
         $results = [];
@@ -42,7 +36,7 @@ class LegacyParser implements ParserInterface
             $matches,
             PREG_OFFSET_CAPTURE
         );
-        $results[] = $this->processMatches($matches, $contents, $file);
+        $results[] = $this->processMatches($matches, $contents);
 
         return array_merge(...$results);
     }
@@ -50,10 +44,9 @@ class LegacyParser implements ParserInterface
     /**
      * @param string[][] $matches
      * @param string $contents
-     * @param string $file
      * @return DeclaredDependency[]
      */
-    private function processMatches(array $matches, string $contents, string $file): array
+    private function processMatches(array $matches, string $contents): array
     {
         $results = [];
 
@@ -70,9 +63,9 @@ class LegacyParser implements ParserInterface
             }
 
             $results[] = new DeclaredDependency(
-                $file,
+                null,
                 (string)$line,
-                "{$file}:{$line}",
+                null,
                 $package,
                 $version,
                 $reason

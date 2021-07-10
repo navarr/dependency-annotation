@@ -14,11 +14,10 @@ use Navarr\Depends\Data\DeclaredDependency;
 interface ParserInterface
 {
     /**
-     * @param string $file
      * @return DeclaredDependency[]
      */
     #[ArrayShape([DeclaredDependency::class])]
-    public function parse(string $file): array;
+    public function parse(string $contents): array;
 
     public function setIssueHandler(IssueHandlerInterface $handler): void;
 }

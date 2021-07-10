@@ -26,7 +26,7 @@ class AstParser implements ParserInterface
     #[Dependency('nikic/php-parser', '^4')]
     #[Dependency('navarr/attribute-dependency', '^1', 'Existence of Dependency attribute')]
     public function parse(
-        string $file
+        string $contents
     ): array {
         $astParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $nameResolver = new NameResolver();
@@ -41,17 +41,11 @@ class AstParser implements ParserInterface
         $traverser->addVisitor($nameResolver);
         $traverser->addVisitor($finder);
 
-        $code = @file_get_contents($file);
-        if ($code === false) {
-            $this->handleIssue("Could not read contents of file '{$file}'");
-            return [];
-        }
-
         $errorCollector = new Collecting();
 
-        $ast = $astParser->parse($code, $errorCollector);
+        $ast = $astParser->parse($contents, $errorCollector);
         if ($ast === null || $errorCollector->hasErrors()) {
-            $description = "Could not parse contents of file '{$file}':" . PHP_EOL . ' - '
+            $description = "Could not parse contents:" . PHP_EOL . ' - '
                 . implode(PHP_EOL . ' - ', $errorCollector->getErrors());
             $this->handleIssue($description);
             return [];
@@ -69,7 +63,7 @@ class AstParser implements ParserInterface
 
         return array_filter(
             array_map(
-                static function (Attribute $node) use ($file, $argIndex): ?DeclaredDependency {
+                static function (Attribute $node) use ($argIndex): ?DeclaredDependency {
                     $attributes = [];
                     foreach ($node->args as $i => $arg) {
                         $name = $arg->name->name ?? $argIndex[$i];
@@ -84,9 +78,9 @@ class AstParser implements ParserInterface
                         return null;
                     }
                     return new DeclaredDependency(
-                        $file,
+                        null,
                         (string)$node->getLine(),
-                        "{$file}:{$node->getLine()}",
+                        null,
                         $attributes['package'],
                         $attributes['versionConstraint'] ?? null,
                         $attributes['reason'] ?? null

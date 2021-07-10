@@ -131,8 +131,25 @@ class WhyBlockCommand extends BaseCommand
 
         $attributes = [[]];
         foreach ($results as $file) {
+            $contents = @file_get_contents($file);
+            if ($contents === false) {
+                $issueHandler->execute("Could not retrieve contents of {$file}");
+                continue;
+            }
             foreach ($parsers as $parser) {
-                $attributes[] = $parser->parse($file);
+                $attributes[] = array_map(
+                    static function (DeclaredDependency $dependency) use ($file) {
+                        return new DeclaredDependency(
+                            $file,
+                            $dependency->getLine(),
+                            "{$file}:{$dependency->getLine()}",
+                            $dependency->getPackage(),
+                            $dependency->getVersion(),
+                            $dependency->getReason()
+                        );
+                    },
+                    $parser->parse($contents)
+                );
             }
         }
         $attributes = array_merge(...$attributes);
@@ -153,9 +170,9 @@ class WhyBlockCommand extends BaseCommand
 
         foreach ($failingAttributes as $failingAttribute) {
             $output->writeln(
-                $failingAttribute->getReference() !== null
+                ($failingAttribute->getReference() !== null
                     ? str_replace(getcwd() . '/', '', $failingAttribute->getReference())
-                    : 'Unknown File'
+                    : 'Unknown File')
                 . ': ' . $failingAttribute->getReason()
                 . ' (' . $failingAttribute->getVersion() . ')'
             );
