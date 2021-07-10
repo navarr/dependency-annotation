@@ -6,7 +6,7 @@
 
 namespace Navarr\Depends\Test\Model;
 
-use Navarr\Depends\Model\FailOnIssueHandler;
+use Navarr\Depends\IssueHandler\FailOnIssueHandler;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

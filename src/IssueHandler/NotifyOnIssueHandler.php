@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Navarr\Depends\Model;
+namespace Navarr\Depends\IssueHandler;
 
 use Navarr\Attribute\Dependency;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
@@ -24,8 +24,9 @@ class NotifyOnIssueHandler implements IssueHandlerInterface
 
     #[Dependency('symfony/console', '^5', 'OutputInterface->getErrorOutput and ->writeln')]
     #[Dependency('symfony/console', '^5', 'ConsoleOutputInterface\'s existence')]
-    public function execute(string $description): void
-    {
+    public function execute(
+        string $description
+    ): void {
         $output = $this->output instanceof ConsoleOutputInterface ? $this->output->getErrorOutput() : $this->output;
         $output->writeln("<error>{$description}</error>");
     }

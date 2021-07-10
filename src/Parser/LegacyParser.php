@@ -6,9 +6,10 @@
 
 declare(strict_types=1);
 
-namespace Navarr\Depends\Model;
+namespace Navarr\Depends\Parser;
 
 use Navarr\Depends\Data\DeclaredDependency;
+use Navarr\Depends\IssueHandler\IssueHandlerInterface;
 
 class LegacyParser implements ParserInterface
 {

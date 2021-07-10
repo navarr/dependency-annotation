@@ -23,6 +23,14 @@
     "autoload": {
         "psr-4": {
             "Navarr\\Depends\\": "src/"
+        },
+        "files": [
+            "src/polyfills/preg_last_error_msg.func.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Navarr\\Depends\\Test\\": "tests/"
         }
     },
     "extra": {

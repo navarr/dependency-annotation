@@ -7,8 +7,10 @@
 namespace Navarr\Depends\Test\Model;
 
 use Navarr\Depends\Data\DeclaredDependency;
-use Navarr\Depends\Model\LegacyParser;
+use Navarr\Depends\IssueHandler\FailOnIssueHandler;
+use Navarr\Depends\Parser\LegacyParser;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class LegacyParserTest extends TestCase
 {
@@ -106,5 +108,23 @@ class LegacyParserTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
+    }
+
+    public function testIssueHandlerIsUtilized()
+    {
+        // I don't like doing this, but I can't reliably make this parser error :|
+        $handler = new FailOnIssueHandler();
+        $parser = new LegacyParser();
+        $parser->setIssueHandler($handler);
+
+        $exceptionMessage = uniqid();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage($exceptionMessage);
+
+        $reflectionClass = new \ReflectionClass($parser);
+        $method = $reflectionClass->getMethod('handleIssue');
+        $method->setAccessible(true);
+        $method->invoke($parser, $exceptionMessage);
     }
 }

@@ -6,7 +6,7 @@
 
 namespace Navarr\Depends\Test\Model;
 
-use Navarr\Depends\Model\NotifyOnIssueHandler;
+use Navarr\Depends\IssueHandler\NotifyOnIssueHandler;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

@@ -6,8 +6,10 @@
 
 declare(strict_types=1);
 
-namespace Navarr\Depends\Model;
+namespace Navarr\Depends\Parser;
 
+use Navarr\Depends\IssueHandler\IssueHandlerInterface;
+use Navarr\Depends\Parser\ParserInterface;
 use PhpParser\ErrorHandler\Collecting;
 use Navarr\Attribute\Dependency;
 use Navarr\Depends\Data\DeclaredDependency;

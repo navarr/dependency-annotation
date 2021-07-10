@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Navarr\Depends\Model;
+namespace Navarr\Depends\IssueHandler;
 
 interface IssueHandlerInterface
 {

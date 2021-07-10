@@ -6,10 +6,11 @@
 
 declare(strict_types=1);
 
-namespace Navarr\Depends\Model;
+namespace Navarr\Depends\Parser;
 
 use JetBrains\PhpStorm\ArrayShape;
 use Navarr\Depends\Data\DeclaredDependency;
+use Navarr\Depends\IssueHandler\IssueHandlerInterface;
 
 interface ParserInterface
 {
