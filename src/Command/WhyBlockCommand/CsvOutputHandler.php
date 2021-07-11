@@ -10,7 +10,6 @@ namespace Navarr\Depends\Command\WhyBlockCommand;
 
 use Navarr\Depends\Data\DeclaredDependency;
 use Navarr\Depends\Proxy\StdOutWriter;
-use RuntimeException;
 
 class CsvOutputHandler implements OutputHandlerInterface
 {

@@ -42,7 +42,7 @@ jobs:
         run: composer2 install
 
       - name: Run PHPStan
-        run: vendor/bin/phpstan analyse src --level max
+        run: vendor/bin/phpstan
 
   phpcs:
     name: Code Style (PSR-12)

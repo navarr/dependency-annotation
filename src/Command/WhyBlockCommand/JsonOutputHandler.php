@@ -9,10 +9,19 @@ declare(strict_types=1);
 namespace Navarr\Depends\Command\WhyBlockCommand;
 
 use Navarr\Depends\Data\DeclaredDependency;
+use Navarr\Depends\Proxy\StdOutWriter;
 use RuntimeException;
 
 class JsonOutputHandler implements OutputHandlerInterface
 {
+    /** @var StdOutWriter */
+    private $writer;
+
+    public function __construct(StdOutWriter $writer)
+    {
+        $this->writer = $writer;
+    }
+
     /**
      * @param DeclaredDependency[] $dependencies
      * @param string $packageToSearchFor
@@ -24,12 +33,10 @@ class JsonOutputHandler implements OutputHandlerInterface
         if (!function_exists('json_encode')) {
             throw new RuntimeException('PHP JSON Extension must be installed to use JSON Output');
         }
-        $resource = STDIN;
-        if ($resource === false) {
+        if (!$this->writer->canWrite()) {
             throw new RuntimeException('Unable to output to stdin');
         }
-        fputs(
-            $resource,
+        $this->writer->write(
             json_encode(
                 array_map(
                     static function (DeclaredDependency $dependency) {
@@ -52,6 +59,6 @@ class JsonOutputHandler implements OutputHandlerInterface
                 )
             ) ?: ''
         );
-        return count($dependencies) > 1 ? 1 : 0;
+        return count($dependencies) < 1 ? 0 : 1;
     }
 }

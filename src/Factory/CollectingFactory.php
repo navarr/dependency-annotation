@@ -27,12 +27,11 @@ class CollectingFactory
     }
 
     /**
-     * @param mixed[] $args Arguments for {@link Collecting}'s constructor
      * @throws DependencyException
      * @throws NotFoundException
      */
-    public function create(array $args = []): Collecting
+    public function create(): Collecting
     {
-        return $this->container->make(Collecting::class, $args);
+        return $this->container->make(Collecting::class);
     }
 }

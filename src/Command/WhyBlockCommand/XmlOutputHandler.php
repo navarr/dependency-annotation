@@ -50,6 +50,6 @@ class XmlOutputHandler implements OutputHandlerInterface
 
         fputs($resource, $results->asXML() ?: '');
 
-        return count($dependencies) > 1 ? 1 : 0;
+        return count($dependencies) < 1 ? 0 : 1;
     }
 }
