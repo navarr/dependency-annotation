@@ -35,6 +35,17 @@ class CsvOutputHandlerTest extends AbstractOutputHandlerTest
         $handler->output([], '', '');
     }
 
+    public function testHeaderIsWrittenByDefault(): void
+    {
+        $writer = $this->createMock(StdOutWriter::class);
+        $writer->expects($this->atLeastOnce())
+            ->method('writeCsv')
+            ->with(['File', 'Line #', 'Constraint Specified', 'Reasoning']);
+
+        $handler = $this->container->make(CsvOutputHandler::class, ['writer' => $writer]);
+        $handler->output([], '', '');
+    }
+
     public function testOutputHeaderIsWrittenWhenIncludeHeaderIsTrue(): void
     {
         $writer = $this->createMock(StdOutWriter::class);
