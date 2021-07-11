@@ -9,7 +9,9 @@ use Navarr\Depends\Command\WhyBlockCommand\JsonOutputHandler;
 use Navarr\Depends\Command\WhyBlockCommand\OutputHandlerInterface;
 use Navarr\Depends\Data\DeclaredDependency;
 use Navarr\Depends\Proxy\StdOutWriter;
+use Navarr\Depends\Proxy\WriterInterface;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class JsonOutputHandlerTest extends AbstractOutputHandlerTest
 {
@@ -20,6 +22,20 @@ class JsonOutputHandlerTest extends AbstractOutputHandlerTest
         }
 
         return $this->container->make(JsonOutputHandler::class, $args);
+    }
+
+    public function testExceptionWhenCanWriteReturnsFalse(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Unable to output to stdin');
+
+        $mock = $this->createMock(WriterInterface::class);
+        $mock->expects($this->once())
+            ->method('canWrite')
+            ->willReturn(false);
+
+        $handler = $this->createHandler(['writer' => $mock]);
+        $handler->output([], '', '');
     }
 
     public function expectedResultProvider(): array

@@ -6,9 +6,11 @@
 
 namespace Navarr\Depends\Test\Command\WhyBlockCommand;
 
+use RuntimeException;
 use JetBrains\PhpStorm\ArrayShape;
 use Navarr\Depends\Command\WhyBlockCommand\XmlOutputHandler;
 use Navarr\Depends\Data\DeclaredDependency;
+use Navarr\Depends\Proxy\WriterInterface;
 use Navarr\Depends\Test\Command\WhyBlockCommand\XmlOutputHandler\ContainerWriter;
 use SimpleXMLElement;
 
@@ -21,6 +23,20 @@ class XmlOutputHandlerTest extends AbstractOutputHandlerTest
         }
 
         return $this->container->make(XmlOutputHandler::class, $args);
+    }
+
+    public function testExceptionWhenCanWriteReturnsFalse(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Unable to output to stdin');
+
+        $mock = $this->createMock(WriterInterface::class);
+        $mock->expects($this->once())
+            ->method('canWrite')
+            ->willReturn(false);
+
+        $handler = $this->createHandler(['writer' => $mock]);
+        $handler->output([], '', '');
     }
 
     #[ArrayShape([

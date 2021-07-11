@@ -10,6 +10,7 @@ namespace Navarr\Depends\Command\WhyBlockCommand;
 
 use Navarr\Depends\Data\DeclaredDependency;
 use Navarr\Depends\Proxy\WriterInterface;
+use RuntimeException;
 
 class CsvOutputHandler implements OutputHandlerInterface
 {
@@ -33,6 +34,9 @@ class CsvOutputHandler implements OutputHandlerInterface
      */
     public function output(array $dependencies, string $packageToSearchFor, string $versionToCompareTo): int
     {
+        if (!$this->writer->canWrite()) {
+            throw new RuntimeException('Unable to output to stdin');
+        }
         if ($this->includeHeader) {
             $this->writer->writeCsv(['File', 'Line #', 'Constraint Specified', 'Reasoning']);
         }

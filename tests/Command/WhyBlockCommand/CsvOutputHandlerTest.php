@@ -11,6 +11,8 @@ namespace Navarr\Depends\Test\Command\WhyBlockCommand;
 use Navarr\Depends\Command\WhyBlockCommand\CsvOutputHandler;
 use Navarr\Depends\Data\DeclaredDependency;
 use Navarr\Depends\Proxy\StdOutWriter;
+use Navarr\Depends\Proxy\WriterInterface;
+use RuntimeException;
 
 class CsvOutputHandlerTest extends AbstractOutputHandlerTest
 {
@@ -27,7 +29,7 @@ class CsvOutputHandlerTest extends AbstractOutputHandlerTest
 
     public function testOutputHeaderIsNotWrittenWhenIncludeHeaderIsFalse(): void
     {
-        $writer = $this->createMock(StdOutWriter::class);
+        $writer = $this->defaultWriterMock();
         $writer->expects($this->never())
             ->method('writeCsv');
 
@@ -37,7 +39,7 @@ class CsvOutputHandlerTest extends AbstractOutputHandlerTest
 
     public function testHeaderIsWrittenByDefault(): void
     {
-        $writer = $this->createMock(StdOutWriter::class);
+        $writer = $this->defaultWriterMock();
         $writer->expects($this->atLeastOnce())
             ->method('writeCsv')
             ->with(['File', 'Line #', 'Constraint Specified', 'Reasoning']);
@@ -46,9 +48,23 @@ class CsvOutputHandlerTest extends AbstractOutputHandlerTest
         $handler->output([], '', '');
     }
 
+    public function testExceptionWhenCanWriteReturnsFalse(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Unable to output to stdin');
+
+        $mock = $this->createMock(WriterInterface::class);
+        $mock->expects($this->once())
+            ->method('canWrite')
+            ->willReturn(false);
+
+        $handler = $this->createHandler(['writer' => $mock]);
+        $handler->output([], '', '');
+    }
+
     public function testOutputHeaderIsWrittenWhenIncludeHeaderIsTrue(): void
     {
-        $writer = $this->createMock(StdOutWriter::class);
+        $writer = $this->defaultWriterMock();
         $writer->expects($this->atLeastOnce())
             ->method('writeCsv')
             ->with(['File', 'Line #', 'Constraint Specified', 'Reasoning']);
@@ -64,7 +80,7 @@ class CsvOutputHandlerTest extends AbstractOutputHandlerTest
         $constraint = uniqid();
         $reason = uniqid();
 
-        $writer = $this->createMock(StdOutWriter::class);
+        $writer = $this->defaultWriterMock();
         $writer->expects($this->once())
             ->method('writeCsv')
             ->with([$file, $line, $constraint, $reason]);
