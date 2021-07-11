@@ -1,0 +1,25 @@
+{
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "phpUnit": {
+        "configDir": "."
+    },
+    "mutators": {
+        "@default": true,
+        "ConcatOperandRemoval": {
+            "ignore": [
+                "Navarr\\Depends\\Parser\\AstParser::parse::82",
+                "Navarr\\Depends\\Parser\\AstParser::parse::83"
+            ]
+        },
+        "Concat": {
+            "ignore": [
+                "Navarr\\Depends\\Parser\\AstParser::parse::82",
+                "Navarr\\Depends\\Parser\\AstParser::parse::83"
+            ]
+        }
+    }
+}

@@ -4,23 +4,47 @@
     "type": "composer-plugin",
     "license": "MIT",
     "require": {
-        "php": "^7.2",
-        "composer-plugin-api": "^1|^2",
-        "composer/composer": "^1|^2",
+        "php": "^7.1|^8",
+        "composer-plugin-api": "^2",
+        "composer/composer": "^2",
         "composer/semver": "^1|^2|^3",
-        "symfony/console": "^5"
+        "symfony/console": "^5",
+        "nikic/php-parser": "^4",
+        "navarr/attribute-dependency": "^1.0.1",
+        "php-di/php-di": "^6"
+    },
+    "suggest": {
+        "ext-fileinfo": "Use MIME types for PHP file detection",
+        "ext-json": "Required to use JSON Output",
+        "ext-simplexml": "Required to use XML Output"
     },
     "require-dev": {
+        "php": "^8",
         "roave/security-advisories": "dev-master",
-        "phpstan/phpstan": "^0.12.32"
+        "phpstan/phpstan": "^0.12.32",
+        "phpunit/phpunit": "^9.5",
+        "infection/infection": "^0.23.0",
+        "squizlabs/php_codesniffer": "^3.6",
+        "jetbrains/phpstorm-attributes": "^1.0"
     },
     "autoload": {
         "psr-4": {
             "Navarr\\Depends\\": "src/"
+        },
+        "files": [
+            "src/polyfills/preg_last_error_msg.func.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Navarr\\Depends\\Test\\": "tests/"
         }
     },
     "extra": {
-        "class": "Navarr\\Depends\\Plugin"
+        "class": "Navarr\\Depends\\Controller\\Composer\\ComposerPlugin",
+        "branch-alias": {
+            "dev-php8-annotation": "2.x-dev"
+        }
     },
     "archive": {
         "exclude": [
