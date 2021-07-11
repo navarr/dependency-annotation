@@ -13,7 +13,7 @@ This project supplies a Composer plugin that adds a command (`why-block`) that i
 
 Simply include a `#[Dependency]` attribute on any attributable target in the following format:
 
-    #[Navarr\Depends\Annotation\Dependency('package', 'versionConstraint', 'reason')]
+    #[Navarr\Attribute\Dependency('package', 'versionConstraint', 'reason')]
     
 This FQN may be imported, in which case you can simply use `#[Dependency(...)]`
 
