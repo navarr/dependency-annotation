@@ -9,11 +9,20 @@ declare(strict_types=1);
 namespace Navarr\Depends\Command\WhyBlockCommand;
 
 use Navarr\Depends\Data\DeclaredDependency;
+use Navarr\Depends\Proxy\WriterInterface;
 use RuntimeException;
 use SimpleXMLElement;
 
 class XmlOutputHandler implements OutputHandlerInterface
 {
+    /** @var WriterInterface */
+    private $writer;
+
+    public function __construct(WriterInterface $writer)
+    {
+        $this->writer = $writer;
+    }
+
     /**
      * @param DeclaredDependency[] $dependencies
      * @param string $packageToSearchFor
@@ -25,12 +34,13 @@ class XmlOutputHandler implements OutputHandlerInterface
         if (!class_exists(SimpleXMLElement::class)) {
             throw new RuntimeException('PHP SimpleXML extension required to use XML Output');
         }
-        $resource = STDIN;
-        if ($resource === false) {
+        if (!$this->writer->canWrite()) {
             throw new RuntimeException('Unable to output to stdin');
         }
 
         $results = new SimpleXMLElement('<block-reasons />');
+        $results->addAttribute('testedPackage', $packageToSearchFor);
+        $results->addAttribute('packageVersion', $versionToCompareTo);
         foreach ($dependencies as $dependency) {
             if ($dependency->getReason() !== null) {
                 $reason = $results->addChild('reason', $dependency->getReason());
@@ -48,7 +58,7 @@ class XmlOutputHandler implements OutputHandlerInterface
             }
         }
 
-        fputs($resource, $results->asXML() ?: '');
+        $this->writer->write($results->asXML() ?: '');
 
         return count($dependencies) < 1 ? 0 : 1;
     }

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Navarr\Depends\Proxy;
 
-class StdOutWriter
+class StdOutWriter implements WriterInterface
 {
     /** @var false|resource */
     private $resource;

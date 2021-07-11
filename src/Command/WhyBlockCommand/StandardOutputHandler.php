@@ -8,8 +8,6 @@ declare(strict_types=1);
 
 namespace Navarr\Depends\Command\WhyBlockCommand;
 
-use JetBrains\PhpStorm\ArrayShape;
-use Navarr\Depends\Command\WhyBlockCommand\OutputHandlerInterface;
 use Navarr\Depends\Data\DeclaredDependency;
 use Symfony\Component\Console\Output\OutputInterface;
 

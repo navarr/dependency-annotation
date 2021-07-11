@@ -26,6 +26,8 @@ use Navarr\Depends\Parser\AstParser;
 use Navarr\Depends\Parser\LegacyParser;
 use Navarr\Depends\Parser\ParserInterface;
 use Navarr\Depends\Parser\ParserPool;
+use Navarr\Depends\Proxy\StdOutWriter;
+use Navarr\Depends\Proxy\WriterInterface;
 use Navarr\Depends\ScopeDeterminer\ComposerScopeDeterminer;
 use Navarr\Depends\ScopeDeterminer\ScopeDeterminerInterface;
 use Psr\Container\ContainerInterface;
@@ -154,6 +156,7 @@ class ComposerCommand extends BaseCommand
                     }
                     return new ParserPool($parsers);
                 },
+                WriterInterface::class => autowire(StdOutWriter::class),
                 ComposerScopeDeterminer::class => autowire(ComposerScopeDeterminer::class)
                     ->property('scope', $composerScope),
                 ScopeDeterminerInterface::class => autowire(ComposerScopeDeterminer::class),

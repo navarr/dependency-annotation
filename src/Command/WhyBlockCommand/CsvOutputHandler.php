@@ -9,17 +9,17 @@ declare(strict_types=1);
 namespace Navarr\Depends\Command\WhyBlockCommand;
 
 use Navarr\Depends\Data\DeclaredDependency;
-use Navarr\Depends\Proxy\StdOutWriter;
+use Navarr\Depends\Proxy\WriterInterface;
 
 class CsvOutputHandler implements OutputHandlerInterface
 {
     /** @var bool */
     private $includeHeader;
 
-    /** @var StdOutWriter */
+    /** @var WriterInterface */
     private $writer;
 
-    public function __construct(StdOutWriter $writer, bool $includeHeader = true)
+    public function __construct(WriterInterface $writer, bool $includeHeader = true)
     {
         $this->includeHeader = $includeHeader;
         $this->writer = $writer;
