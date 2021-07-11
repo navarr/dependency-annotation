@@ -14,8 +14,8 @@ use RuntimeException;
 
 class LegacyParserTest extends TestCase
 {
-    private const LEGACY_FILE = '../data/legacyParserUsage.php';
-    private const EMPTY_FILE = '../data/emptyFile.php';
+    private const LEGACY_FILE = '../_data/legacyParserUsage.php';
+    private const EMPTY_FILE = '../_data/emptyFile.php';
 
     private function getStandardResults(): array
     {

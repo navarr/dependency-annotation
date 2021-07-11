@@ -15,9 +15,9 @@ use RuntimeException;
 
 class AstParserTest extends TestCase
 {
-    private const EMPTY_FILE = '../data/emptyFile.php';
-    private const FILE_ATTRIBUTE_USAGE = '../data/attributeUsage.php';
-    private const FILE_INVALID = '../data/invalidAttributeUsage.php';
+    private const EMPTY_FILE = '../_data/emptyFile.php';
+    private const FILE_ATTRIBUTE_USAGE = '../_data/attributeUsage.php';
+    private const FILE_INVALID = '../_data/invalidAttributeUsage.php';
     private const ATTRIBUTE_USAGE_ATTRIBUTE_COUNT = 10;
 
     private function buildAstParser(array $args = []): AstParser
@@ -144,7 +144,7 @@ class AstParserTest extends TestCase
 
     public function testParserGracefullyHandlesBadAttributeSyntax()
     {
-        $file = __DIR__ . '/' . '../data/incorrectAttributeUsage.php';
+        $file = __DIR__ . '/../_data/invalidAttributeUsage.php';
         $contents = file_get_contents($file);
 
         $parser = $this->buildAstParser();

@@ -7,5 +7,10 @@
         <include>
             <directory suffix=".php">src</directory>
         </include>
+        <exclude>
+            <directory suffix=".php">src/polyfills</directory>
+            <directory suffix=".php">src/Factory</directory>
+            <file>src/Proxy/MimeDeterminer.php</file>
+        </exclude>
     </coverage>
 </phpunit>

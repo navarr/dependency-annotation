@@ -16,7 +16,6 @@ use Navarr\Depends\Factory\NodeTraverserFactory;
 use Navarr\Depends\IssueHandler\IssueHandlerInterface;
 use PhpParser\Node;
 use PhpParser\Node\Attribute;
-use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\ParserFactory;
 

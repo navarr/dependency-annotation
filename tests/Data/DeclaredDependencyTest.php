@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class DeclaredDependencyTest extends TestCase
 {
-    public function testDataTransferObject()
+    public function testNonDefaultValues()
     {
         $file = uniqid();
         $line = uniqid();
@@ -27,7 +27,8 @@ class DeclaredDependencyTest extends TestCase
             $reference,
             $package,
             $version,
-            $reason
+            $reason,
+            false
         );
 
         $this->assertEquals($file, $dependency->getFile());
@@ -36,9 +37,10 @@ class DeclaredDependencyTest extends TestCase
         $this->assertEquals($package, $dependency->getPackage());
         $this->assertEquals($version, $dependency->getConstraint());
         $this->assertEquals($reason, $dependency->getReason());
+        $this->assertFalse($dependency->isRequired());
     }
 
-    public function testDataTransferObjectReturnsNull()
+    public function testDefaultValues()
     {
         $dependency = new DeclaredDependency();
 
@@ -48,5 +50,15 @@ class DeclaredDependencyTest extends TestCase
         $this->assertNull($dependency->getPackage());
         $this->assertNull($dependency->getConstraint());
         $this->assertNull($dependency->getReason());
+        $this->assertTrue($dependency->isRequired());
+    }
+
+    public function testRequiredAttributeReturnsProvidedValue()
+    {
+        $dependency = new DeclaredDependency(required: true);
+        $this->assertTrue($dependency->isRequired());
+
+        $dependency = new DeclaredDependency(required: false);
+        $this->assertFalse($dependency->isRequired());
     }
 }

@@ -9,15 +9,21 @@ declare(strict_types=1);
 namespace Navarr\Depends\Command\WhyBlockCommand;
 
 use Navarr\Depends\Data\DeclaredDependency;
+use Navarr\Depends\Proxy\StdOutWriter;
+use RuntimeException;
 
 class CsvOutputHandler implements OutputHandlerInterface
 {
     /** @var bool */
     private $includeHeader;
 
-    public function __construct(bool $includeHeader = true)
+    /** @var StdOutWriter */
+    private $writer;
+
+    public function __construct(StdOutWriter $writer, bool $includeHeader = true)
     {
         $this->includeHeader = $includeHeader;
+        $this->writer = $writer;
     }
 
     /**
@@ -28,18 +34,16 @@ class CsvOutputHandler implements OutputHandlerInterface
      */
     public function output(array $dependencies, string $packageToSearchFor, string $versionToCompareTo): int
     {
-        $resource = STDIN;
         if ($this->includeHeader) {
-            fputcsv($resource, ['File', 'Line #', 'Constraint Specified', 'Reasoning']);
+            $this->writer->writeCsv(['File', 'Line #', 'Constraint Specified', 'Reasoning']);
         }
         foreach ($dependencies as $dependency) {
-            fputcsv(
-                $resource,
+            $this->writer->writeCsv(
                 [
-                    $dependency->getFile(),
-                    $dependency->getLine(),
-                    $dependency->getConstraint(),
-                    $dependency->getReason(),
+                    $dependency->getFile() ?: '',
+                    $dependency->getLine() ?: '',
+                    $dependency->getConstraint() ?: '',
+                    $dependency->getReason() ?: '',
                 ]
             );
         }

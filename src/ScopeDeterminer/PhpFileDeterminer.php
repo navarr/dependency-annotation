@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace Navarr\Depends\ScopeDeterminer;
 
 use JetBrains\PhpStorm\Pure;
-use Navarr\Attribute\Dependency;
+use Navarr\Depends\Proxy\MimeDeterminer;
 
 class PhpFileDeterminer
 {
@@ -30,14 +30,22 @@ class PhpFileDeterminer
         'php8',
     ];
 
+    /** @var MimeDeterminer */
+    private $mimeDeterminer;
+
+    public function __construct(MimeDeterminer $mimeDeterminer)
+    {
+        $this->mimeDeterminer = $mimeDeterminer;
+    }
+
     #[Pure]
-    #[Dependency('ext-fileinfo', required: false, reason: 'Usage of mime_content_type if available')]
     public function isPhp(
         string $file
     ): bool {
         // There are so many approaches we could take here, but we're going with this one:
 
-        if (function_exists('mime_content_type') && in_array(mime_content_type($file), static::PHP_MIME_TYPES)) {
+        $mimeType = $this->mimeDeterminer->getMimeType($file);
+        if ($mimeType && in_array($mimeType, static::PHP_MIME_TYPES)) {
             // Mime type is PHP.  That's good enough for me
             return true;
         }
