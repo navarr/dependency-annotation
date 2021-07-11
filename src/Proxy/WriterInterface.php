@@ -1,10 +1,10 @@
 <?php
+
 /**
  * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
 
 namespace Navarr\Depends\Proxy;
-
 
 interface WriterInterface
 {
@@ -13,7 +13,7 @@ interface WriterInterface
     public function write(string $data): void;
 
     /**
-     * @param mixed[]
+     * @param mixed[] $data
      */
     public function writeCsv(array $data): void;
 }
