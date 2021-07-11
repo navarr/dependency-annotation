@@ -5,12 +5,18 @@
     "license": "MIT",
     "require": {
         "php": "^7.1|^8",
-        "composer-plugin-api": "^1|^2",
-        "composer/composer": "^1|^2",
+        "composer-plugin-api": "^2",
+        "composer/composer": "^2",
         "composer/semver": "^1|^2|^3",
         "symfony/console": "^5",
-        "nikic/php-parser": "^4.10",
-        "navarr/attribute-dependency": "^1"
+        "nikic/php-parser": "^4",
+        "navarr/attribute-dependency": "^1.0.1",
+        "php-di/php-di": "^6"
+    },
+    "suggest": {
+        "ext-fileinfo": "Use MIME types for PHP file detection",
+        "ext-json": "Required to use JSON Output",
+        "ext-simplexml": "Required to use XML Output"
     },
     "require-dev": {
         "roave/security-advisories": "dev-master",
@@ -34,7 +40,7 @@
         }
     },
     "extra": {
-        "class": "Navarr\\Depends\\Plugin",
+        "class": "Navarr\\Depends\\Controller\\Composer\\ComposerPlugin",
         "branch-alias": {
             "dev-php8-annotation": "2.x-dev"
         }

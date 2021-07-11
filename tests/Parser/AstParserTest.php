@@ -4,8 +4,9 @@
  * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
 
-namespace Navarr\Depends\Test\Model;
+namespace Navarr\Depends\Test\Parser;
 
+use DI\Container;
 use Navarr\Depends\Data\DeclaredDependency;
 use Navarr\Depends\Parser\AstParser;
 use Navarr\Depends\IssueHandler\FailOnIssueHandler;
@@ -19,12 +20,18 @@ class AstParserTest extends TestCase
     private const FILE_INVALID = '../data/invalidAttributeUsage.php';
     private const ATTRIBUTE_USAGE_ATTRIBUTE_COUNT = 10;
 
+    private function buildAstParser(array $args = []): AstParser
+    {
+        $container = new Container();
+        return $container->make(AstParser::class, $args);
+    }
+
     /**
      * @return DeclaredDependency[]
      */
     private function getStandardResults(): array
     {
-        $parser = new AstParser();
+        $parser = $this->buildAstParser();
         $contents = file_get_contents(__DIR__ . '/' . self::FILE_ATTRIBUTE_USAGE);
         return $parser->parse($contents);
     }
@@ -102,7 +109,7 @@ class AstParserTest extends TestCase
                 $searchVersion,
                 array_map(
                     static function (DeclaredDependency $result) {
-                        return $result->getVersion();
+                        return $result->getConstraint();
                     },
                     $results
                 )
@@ -115,8 +122,7 @@ class AstParserTest extends TestCase
         $file = __DIR__ . '/' . self::FILE_INVALID;
         $contents = file_get_contents($file);
 
-        $parser = new AstParser();
-        $parser->setIssueHandler(new FailOnIssueHandler);
+        $parser = $this->buildAstParser(['issueHandler' => new FailOnIssueHandler()]);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageMatches("#^Could not parse contents#");
@@ -129,7 +135,7 @@ class AstParserTest extends TestCase
         $file = __DIR__ . '/' . self::FILE_INVALID;
         $contents = file_get_contents($file);
 
-        $parser = new AstParser();
+        $parser = $this->buildAstParser();
         $result = $parser->parse($contents);
 
         $this->assertIsArray($result);
@@ -141,7 +147,7 @@ class AstParserTest extends TestCase
         $file = __DIR__ . '/' . '../data/incorrectAttributeUsage.php';
         $contents = file_get_contents($file);
 
-        $parser = new AstParser();
+        $parser = $this->buildAstParser();
         $result = $parser->parse($contents);
 
         $this->assertIsArray($result);
@@ -153,7 +159,7 @@ class AstParserTest extends TestCase
         $file = __DIR__ . '/' . self::EMPTY_FILE;
         $contents = file_get_contents($file);
 
-        $parser = new AstParser();
+        $parser = $this->buildAstParser();
         $result = $parser->parse($contents);
 
         $this->assertIsArray($result);

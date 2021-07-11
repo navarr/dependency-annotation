@@ -4,7 +4,7 @@
  * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
 
-namespace Navarr\Depends\Test\Model;
+namespace Navarr\Depends\Test\Parser;
 
 use Navarr\Depends\Data\DeclaredDependency;
 use Navarr\Depends\IssueHandler\FailOnIssueHandler;
@@ -114,8 +114,7 @@ class LegacyParserTest extends TestCase
     {
         // I don't like doing this, but I can't reliably make this parser error :|
         $handler = new FailOnIssueHandler();
-        $parser = new LegacyParser();
-        $parser->setIssueHandler($handler);
+        $parser = new LegacyParser($handler);
 
         $exceptionMessage = uniqid();
 

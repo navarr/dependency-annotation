@@ -17,8 +17,13 @@ class LegacyParser implements ParserInterface
     private const INLINE_MATCH_VERSION = 5;
     private const INLINE_MATCH_REASON = 7;
 
-    /** @var IssueHandlerInterface */
+    /** @var IssueHandlerInterface|null */
     private $issueHandler;
+
+    public function __construct(IssueHandlerInterface $issueHandler = null)
+    {
+        $this->issueHandler = $issueHandler;
+    }
 
     public function parse(string $contents): array
     {
@@ -38,7 +43,7 @@ class LegacyParser implements ParserInterface
             PREG_OFFSET_CAPTURE
         );
         if ($result === false) {
-            $this->issueHandler->execute('Regex error: ' . preg_last_error_msg());
+            $this->handleIssue('Regex error: ' . preg_last_error_msg());
         }
         $results[] = $this->processMatches($matches, $contents);
 
@@ -77,11 +82,6 @@ class LegacyParser implements ParserInterface
         }
 
         return $results;
-    }
-
-    public function setIssueHandler(IssueHandlerInterface $handler): void
-    {
-        $this->issueHandler = $handler;
     }
 
     private function handleIssue(string $description): void

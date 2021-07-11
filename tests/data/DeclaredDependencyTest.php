@@ -34,7 +34,7 @@ class DeclaredDependencyTest extends TestCase
         $this->assertEquals($line, $dependency->getLine());
         $this->assertEquals($reference, $dependency->getReference());
         $this->assertEquals($package, $dependency->getPackage());
-        $this->assertEquals($version, $dependency->getVersion());
+        $this->assertEquals($version, $dependency->getConstraint());
         $this->assertEquals($reason, $dependency->getReason());
     }
 
@@ -46,7 +46,7 @@ class DeclaredDependencyTest extends TestCase
         $this->assertNull($dependency->getLine());
         $this->assertNull($dependency->getReference());
         $this->assertNull($dependency->getPackage());
-        $this->assertNull($dependency->getVersion());
+        $this->assertNull($dependency->getConstraint());
         $this->assertNull($dependency->getReason());
     }
 }

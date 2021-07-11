@@ -8,240 +8,43 @@ declare(strict_types=1);
 
 namespace Navarr\Depends\Command;
 
-use Composer\Command\BaseCommand;
-use Composer\Composer;
-use Composer\Package\Link;
-use Composer\Package\PackageInterface;
 use Composer\Semver\Semver;
-use InvalidArgumentException;
-use Navarr\Attribute\Dependency;
+use Navarr\Depends\Command\WhyBlockCommand\OutputHandlerInterface;
 use Navarr\Depends\Data\DeclaredDependency;
-use Navarr\Depends\Parser\AstParser;
-use Navarr\Depends\IssueHandler\FailOnIssueHandler;
-use Navarr\Depends\Parser\LegacyParser;
-use Navarr\Depends\IssueHandler\NotifyOnIssueHandler;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
+use Navarr\Depends\DeclaredDependencyAggregator;
 
-#[Dependency('composer/composer', '^1|^2', 'Extends BaseCommand')]
-class WhyBlockCommand extends BaseCommand
+class WhyBlockCommand
 {
-    private const ALL_DEPS = 'include-all-dependencies';
-    private const ROOT_DEPS = 'include-root-dependencies';
-    private const LEGACY_ANNOTATION = 'include-legacy-annotations';
-    private const FAIL_ON_ERROR = 'fail-on-error';
+    /** @var DeclaredDependencyAggregator */
+    private $aggregator;
 
-    // phpcs:ignore Generic.Files.LineLength.TooLong -- Attribute support pre PHP 8
-    #[Dependency('symfony/console', '^5', 'Command\'s setName, addArgument and addOption methods as well as InputArgument\'s constants of REQUIRED and VALUE_NONE')]
-    protected function configure(): void
+    /** @var OutputHandlerInterface */
+    private $outputHandler;
+
+    public function __construct(DeclaredDependencyAggregator $aggregator, OutputHandlerInterface $outputHandler)
     {
-        $this->setName('why-block')
-            ->addArgument('package', InputArgument::REQUIRED, 'Package to inspect')
-            ->addArgument('version', InputArgument::REQUIRED, 'Version you want to update it to')
-            ->addOption(
-                self::FAIL_ON_ERROR,
-                ['f'],
-                InputOption::VALUE_NONE,
-                'Immediately fail on parsing errors'
-            )
-            ->addOption(
-                self::LEGACY_ANNOTATION,
-                ['l'],
-                InputOption::VALUE_NONE,
-                'Include old @dependency/@composerDependency annotations in search'
-            )
-            ->addOption(
-                self::ROOT_DEPS,
-                ['r'],
-                InputOption::VALUE_NONE,
-                'Search root dependencies for the @dependency annotation'
-            )
-            ->addOption(
-                self::ALL_DEPS,
-                ['a'],
-                InputOption::VALUE_NONE,
-                'Search all dependencies for the @dependency annotation'
-            );
+        $this->aggregator = $aggregator;
+        $this->outputHandler = $outputHandler;
     }
 
-    #[Dependency('symfony/console', '^5', 'InputInterface::getOption and OutputInterface::writeln')]
-    protected function execute(
-        InputInterface $input,
-        OutputInterface $output
-    ): int {
-        $packageToSearchFor = $input->getArgument('package');
-        $versionToCompareTo = $input->getArgument('version');
+    public function execute(string $packageToSearchFor, string $versionToCompareTo): int
+    {
+        $dependencies = $this->aggregator->aggregate();
 
-        if (!is_string($packageToSearchFor)) {
-            throw new InvalidArgumentException('Only one package is allowed');
-        }
-        if (!is_string($versionToCompareTo)) {
-            throw new InvalidArgumentException('Only one version is allowed');
-        }
-
-        $issueHandler = $input->getOption(self::FAIL_ON_ERROR)
-            ? new FailOnIssueHandler()
-            : new NotifyOnIssueHandler($output);
-
-        /** @var Composer $composer required indicates it can never be null. */
-        $composer = $this->getComposer(true);
-
-        // Always check the base files
-        $results = static::getAllFilesForAutoload('.', $composer->getPackage()->getAutoload());
-
-        $packages = [];
-        // If we're checking dependencies, grab all packages
-        if ($input->getOption(self::ROOT_DEPS) || $input->getOption(self::ALL_DEPS)) {
-            $packages = $composer->getRepositoryManager()->getLocalRepository()->getPackages();
-        }
-
-        // If we're only checking root dependencies, determine them and filter down `$packages`
-        if ($input->getOption(self::ROOT_DEPS)) {
-            $requires = array_map(
-                static function (Link $link) {
-                    return $link->getTarget();
-                },
-                $composer->getPackage()->getRequires()
-            );
-            $packages = array_filter(
-                $packages,
-                static function (PackageInterface $package) use ($requires) {
-                    return in_array($package->getName(), $requires, true);
-                }
-            );
-        }
-
-        // Find all files for the packages
-        foreach ($packages as $package) {
-            $path = 'vendor' . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $package->getName());
-            $results = static::getAllFilesForAutoload($path, $package->getAutoload(), $results);
-        }
-
-        $parsers = [];
-        $parsers[] = new AstParser();
-        if ($input->getOption(self::LEGACY_ANNOTATION)) {
-            $parsers[] = new LegacyParser();
-        }
-
-        foreach ($parsers as $parser) {
-            $parser->setIssueHandler($issueHandler);
-        }
-
-        $attributes = [[]];
-        foreach ($results as $file) {
-            $contents = @file_get_contents($file);
-            if ($contents === false) {
-                $issueHandler->execute("Could not retrieve contents of {$file}");
-                continue;
-            }
-            foreach ($parsers as $parser) {
-                $attributes[] = array_map(
-                    static function (DeclaredDependency $dependency) use ($file) {
-                        return new DeclaredDependency(
-                            $file,
-                            $dependency->getLine(),
-                            "{$file}:{$dependency->getLine()}",
-                            $dependency->getPackage(),
-                            $dependency->getVersion(),
-                            $dependency->getReason()
-                        );
-                    },
-                    $parser->parse($contents)
-                );
-            }
-        }
-        $attributes = array_merge(...$attributes);
-
-        /** @var DeclaredDependency[] $failingAttributes Declarations of the provided package that don't match the
+        /** @var DeclaredDependency[] $failingDependencies Declarations of the provided package that don't match the
          * version requirement
          */
-        $failingAttributes = array_filter(
-            $attributes,
+        $failingDependencies = array_filter(
+            $dependencies,
             static function (DeclaredDependency $attribute) use ($packageToSearchFor, $versionToCompareTo) {
-                if ($attribute->getPackage() === null || $attribute->getVersion() === null) {
+                if ($attribute->getPackage() === null || $attribute->getConstraint() === null) {
                     return false;
                 }
                 return strtolower($attribute->getPackage()) === strtolower($packageToSearchFor)
-                    && !Semver::satisfies($versionToCompareTo, $attribute->getVersion());
+                    && !Semver::satisfies($versionToCompareTo, $attribute->getConstraint());
             }
         );
 
-        foreach ($failingAttributes as $failingAttribute) {
-            $output->writeln(
-                ($failingAttribute->getReference() !== null
-                    ? str_replace(getcwd() . '/', '', $failingAttribute->getReference())
-                    : 'Unknown File')
-                . ': ' . $failingAttribute->getReason()
-                . ' (' . $failingAttribute->getVersion() . ')'
-            );
-        }
-
-        if (count($failingAttributes) < 1) {
-            $package = $packageToSearchFor;
-            $version = $versionToCompareTo;
-            $output->writeln("We found no documented reason for {$package} v{$version} being blocked.");
-        }
-
-        return 0;
-    }
-
-    /**
-     * Retrieve all PHP files out of the directories and files listed in the autoload directive
-     *
-     * @param string $basePath Base directory of the package who's autoload we're processing
-     * @param array<array> $autoload Result of {@see PackageInterface::getAutoload()}
-     * @param string[] $results Array of file paths to merge with
-     * @return string[] File paths
-     */
-    private static function getAllFilesForAutoload(string $basePath, array $autoload, array $results = []): array
-    {
-        foreach ($autoload as $map) {
-            foreach ($map as $dir) {
-                $realDir = realpath($basePath . DIRECTORY_SEPARATOR . $dir);
-                if ($realDir === false) {
-                    continue;
-                }
-                if (is_file($realDir)) {
-                    $results[] = $realDir;
-                    continue;
-                }
-                if (is_dir($realDir)) {
-                    $results = static::getAllPhpFiles($realDir, $results);
-                }
-            }
-        }
-        return $results;
-    }
-
-    /**
-     * Find all PHP files by recursively searching a directory
-     *
-     * @param string $dir Directory to search recursively
-     * @param string[] $results Array of file paths to merge with
-     * @return string[] File paths
-     */
-    private static function getAllPhpFiles(string $dir, array $results = []): array
-    {
-        $files = scandir($dir);
-        if ($files === false) {
-            return $results;
-        }
-
-        foreach ($files as $value) {
-            $path = realpath($dir . DIRECTORY_SEPARATOR . $value);
-            if ($path === false) {
-                continue;
-            }
-
-            if (!is_dir($path) && substr($path, -4) === '.php') {
-                $results[] = $path;
-            } elseif (is_dir($path) && !in_array($value, ['.', '..'])) {
-                $results = static::getAllPhpFiles($path, $results);
-            }
-        }
-
-        return $results;
+        return $this->outputHandler->output($failingDependencies, $packageToSearchFor, $versionToCompareTo);
     }
 }

@@ -4,7 +4,7 @@
  * @copyright 2021 Navarr Barnier. All Rights Reserved.
  */
 
-namespace Navarr\Depends\Test\Model;
+namespace Navarr\Depends\Test\IssueHandler;
 
 use Navarr\Depends\IssueHandler\FailOnIssueHandler;
 use PHPUnit\Framework\TestCase;

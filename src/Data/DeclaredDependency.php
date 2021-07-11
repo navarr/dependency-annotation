@@ -8,52 +8,48 @@ declare(strict_types=1);
 
 namespace Navarr\Depends\Data;
 
+/**
+ * @api
+ */
 class DeclaredDependency
 {
-    /**
-     * @var string|null
-     */
+    /** @var string|null */
     private $file;
 
-    /**
-     * @var string|null
-     */
+    /** @var string|null */
     private $line;
 
-    /**
-     * @var string|null
-     */
+    /** @var string|null */
     private $package;
 
-    /**
-     * @var string|null
-     */
+    /** @var string|null */
     private $reason;
 
-    /**
-     * @var string|null
-     */
+    /** @var string|null */
     private $reference;
 
-    /**
-     * @var string|null
-     */
-    private $version;
+    /** @var string|null */
+    private $constraint;
+
+    /** @var bool */
+    private $required;
 
     public function __construct(
         ?string $file = null,
         ?string $line = null,
         ?string $reference = null,
         ?string $package = null,
-        ?string $version = null,
-        ?string $reason = null
+        ?string $constraint = null,
+        ?string $reason = null,
+        bool $required = true
     ) {
         $this->file = $file;
         $this->line = $line;
         $this->reference = $reference;
         $this->package = $package;
-        $this->version = $version;
+        $this->constraint = $constraint;
         $this->reason = $reason;
+        $this->required = $required;
     }
 
     public function getFile(): ?string
@@ -76,13 +72,18 @@ class DeclaredDependency
         return $this->package;
     }
 
-    public function getVersion(): ?string
+    public function getConstraint(): ?string
     {
-        return $this->version;
+        return $this->constraint;
     }
 
     public function getReason(): ?string
     {
         return $this->reason;
+    }
+
+    public function isRequired(): bool
+    {
+        return $this->required;
     }
 }

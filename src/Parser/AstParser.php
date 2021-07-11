@@ -8,42 +8,75 @@ declare(strict_types=1);
 
 namespace Navarr\Depends\Parser;
 
-use Navarr\Depends\IssueHandler\IssueHandlerInterface;
-use Navarr\Depends\Parser\ParserInterface;
-use PhpParser\ErrorHandler\Collecting;
 use Navarr\Attribute\Dependency;
 use Navarr\Depends\Data\DeclaredDependency;
+use Navarr\Depends\Factory\CollectingFactory;
+use Navarr\Depends\Factory\FindingVisitorFactory;
+use Navarr\Depends\Factory\NodeTraverserFactory;
+use Navarr\Depends\IssueHandler\IssueHandlerInterface;
 use PhpParser\Node;
 use PhpParser\Node\Attribute;
 use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor\FindingVisitor;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\ParserFactory;
 
 class AstParser implements ParserInterface
 {
+    /** @var CollectingFactory */
+    private $errorCollectorFactory;
+
+    /** @var FindingVisitorFactory */
+    private $findingVisitorFactory;
+
     /** @var IssueHandlerInterface|null */
     private $issueHandler;
+
+    /** @var NameResolver */
+    private $nameResolver;
+
+    /** @var NodeTraverserFactory */
+    private $nodeTraverserFactory;
+
+    /** @var ParserFactory */
+    private $parserFactory;
+
+    public function __construct(
+        ParserFactory $parserFactory,
+        NameResolver $nameResolver,
+        NodeTraverserFactory $nodeTraverserFactory,
+        CollectingFactory $errorCollectorFactory,
+        FindingVisitorFactory $findingVisitorFactory,
+        IssueHandlerInterface $issueHandler = null
+    ) {
+        $this->parserFactory = $parserFactory;
+        $this->nameResolver = $nameResolver;
+        $this->nodeTraverserFactory = $nodeTraverserFactory;
+        $this->errorCollectorFactory = $errorCollectorFactory;
+        $this->findingVisitorFactory = $findingVisitorFactory;
+        $this->issueHandler = $issueHandler;
+    }
 
     #[Dependency('nikic/php-parser', '^4')]
     #[Dependency('navarr/attribute-dependency', '^1', 'Existence of Dependency attribute')]
     public function parse(
         string $contents
     ): array {
-        $astParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
-        $nameResolver = new NameResolver();
-        $finder = new FindingVisitor(
-            static function (Node $node) {
-                return $node instanceof Attribute
-                    && $node->name->toString() === Dependency::class;
-            }
+        $astParser = $this->parserFactory->create(ParserFactory::PREFER_PHP7);
+        $nameResolver = $this->nameResolver;
+        $finder = $this->findingVisitorFactory->create(
+            [
+                'filterCallback' => static function (Node $node) {
+                    return $node instanceof Attribute
+                        && $node->name->toString() === Dependency::class;
+                },
+            ]
         );
 
-        $traverser = new NodeTraverser();
+        $traverser = $this->nodeTraverserFactory->create();
         $traverser->addVisitor($nameResolver);
         $traverser->addVisitor($finder);
 
-        $errorCollector = new Collecting();
+        $errorCollector = $this->errorCollectorFactory->create();
 
         $ast = $astParser->parse($contents, $errorCollector);
         if ($ast === null || $errorCollector->hasErrors()) {
@@ -61,6 +94,7 @@ class AstParser implements ParserInterface
             0 => 'package',
             1 => 'versionConstraint',
             2 => 'reason',
+            3 => 'required',
         ];
 
         return array_filter(
@@ -85,17 +119,13 @@ class AstParser implements ParserInterface
                         null,
                         $attributes['package'],
                         $attributes['versionConstraint'] ?? null,
-                        $attributes['reason'] ?? null
+                        $attributes['reason'] ?? null,
+                        isset($attributes['required']) && (bool)$attributes['required']
                     );
                 },
                 $attributes
             )
         );
-    }
-
-    public function setIssueHandler(IssueHandlerInterface $handler): void
-    {
-        $this->issueHandler = $handler;
     }
 
     private function handleIssue(string $description): void
