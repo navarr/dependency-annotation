@@ -48,4 +48,13 @@ class ParserPoolTest extends TestCase
         $this->assertContains($parser1Result, $result);
         $this->assertContains($parser2Result, $result);
     }
+
+    public function testHandlesNoResults()
+    {
+        $pool = new ParserPool([]);
+        $result = $pool->parse('');
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
 }
