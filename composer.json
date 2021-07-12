@@ -43,7 +43,7 @@
     "extra": {
         "class": "Navarr\\Depends\\Controller\\Composer\\ComposerPlugin",
         "branch-alias": {
-            "dev-php8-annotation": "2.x-dev"
+            "main": "2.x-dev"
         }
     },
     "archive": {
