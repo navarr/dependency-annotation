@@ -10,6 +10,8 @@ namespace Navarr\Depends\Test\Controller;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class AbstractWhyBlockCommandTest extends TestCase
 {

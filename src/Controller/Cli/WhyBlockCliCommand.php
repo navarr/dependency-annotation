@@ -43,11 +43,7 @@ class WhyBlockCliCommand extends Command
     ): int {
         $optionValuesBuilder = new WhyBlockUtility\OptionValuesBuilder();
         $optionValues = $optionValuesBuilder->buildFromInput($input);
-        $directory = $input->getArgument('directory');
-
-        if (!is_string($directory)) {
-            throw new InvalidArgumentException('Only one directory is allowed');
-        }
+        $directory = (string)$input->getArgument('directory');
 
         $containerBuilder = AddDefaultDefinitions::execute();
         WhyBlockUtility::addBaseDiDefinitions($containerBuilder, $input, $output, $optionValues);

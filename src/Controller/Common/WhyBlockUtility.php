@@ -80,7 +80,8 @@ class WhyBlockUtility
                 static::OPTION_OUTPUT_FORMAT,
                 ['f'],
                 InputOption::VALUE_OPTIONAL,
-                'Format to put results in.  Accepted values: text, csv, json, xml'
+                'Format to put results in.  Accepted values: text, csv, json, xml',
+                'text'
             )
             ->addOption(
                 static::OPTION_FAIL_ON_ERROR,
