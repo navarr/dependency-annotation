@@ -42,8 +42,6 @@ use function DI\create;
 
 class WhyBlockCommandController extends Command
 {
-    private const ALL_DEPS = 'include-all-dependencies';
-    private const ROOT_DEPS = 'include-root-dependencies';
     private const LEGACY_ANNOTATION = 'include-legacy-annotations';
     private const FAIL_ON_ERROR = 'fail-on-error';
     private const OUTPUT_FORMAT = 'format';
