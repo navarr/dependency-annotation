@@ -2,3 +2,13 @@ parameters:
     level: 8
     paths:
         - src
+    ignoreErrors:
+        - message: "#Cannot cast array\\<string\\>\\|string\\|null to string\\.#"
+          path: src/Controller/Cli/WhyBlockCliCommand.php
+          count: 1
+        - message: "#Cannot cast array\\<string\\>\\|string\\|null to string\\.#"
+          path: src/Controller/Common/WhyBlockUtility/OptionValuesBuilder.php
+          count: 2
+        - message: "#Cannot cast array\\<string\\>\\|bool\\|string\\|null to string\\.#"
+          path: src/Controller/Common/WhyBlockUtility/OptionValuesBuilder.php
+          count: 1

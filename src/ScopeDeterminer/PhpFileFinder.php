@@ -27,6 +27,14 @@ class PhpFileFinder
      */
     public function findAll(string $dir, array $results = []): array
     {
+        if (is_file($dir) && $this->phpFileDeterminer->isPhp($dir)) {
+            return [$dir];
+        }
+
+        if (!is_dir($dir)) {
+            return [];
+        }
+
         // Directories is ever expanding by the loop.  We do this instead of recursion b/c I have an unhealthy fear
         // of recursion limits
         $directories = [$dir];
