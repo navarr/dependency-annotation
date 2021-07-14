@@ -1,0 +1,45 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * @copyright 2021 Navarr Barnier. All Rights Reserved.
+ */
+
+declare(strict_types=1);
+
+use Navarr\Depends\Controller\CliApplication;
+
+if (version_compare('7.1.0', PHP_VERSION, '>')) {
+    fwrite(
+        STDERR,
+        "This version of DepAnno requires PHP 7.1.0 or greater." . PHP_EOL .
+        "You are currently using PHP " . PHP_VERSION . PHP_EOL
+    );
+    die(1);
+}
+
+if (!ini_get('date.timezone')) {
+    ini_set('date.timezone', 'UTC');
+}
+
+$found = false;
+foreach (
+    [
+        __DIR__ . '/../../autoload.php',
+        __DIR__ . '/../vendor/autoload.php',
+        __DIR__ . '/vendor/autoload.php',
+    ] as $autoload
+) {
+    if (file_exists($autoload)) {
+        require_once($autoload);
+        $found = true;
+        break;
+    }
+}
+
+if (!$found) {
+    fwrite(STDERR, "You must install DepAnno using Composer");
+    die(1);
+}
+
+die(CliApplication::execute());

@@ -26,20 +26,20 @@ class ComposerScopeDeterminer implements ScopeDeterminerInterface
     /** @var Composer */
     private $composer;
 
-    /** @var PhpFileDeterminer */
-    private $phpFileDeterminer;
+    /** @var PhpFileFinder */
+    private $phpFileFinder;
 
     /** @var int */
     private $scope;
 
     public function __construct(
         Composer $composer,
-        PhpFileDeterminer $phpFileDeterminer,
+        PhpFileFinder $phpFileFinder,
         #[ExpectedValues(valuesFromClass: ComposerScopeDeterminer::class)]
         int $scope = self::SCOPE_PROJECT_ONLY
     ) {
         $this->composer = $composer;
-        $this->phpFileDeterminer = $phpFileDeterminer;
+        $this->phpFileFinder = $phpFileFinder;
         $this->scope = $scope;
     }
 
@@ -133,40 +133,10 @@ class ComposerScopeDeterminer implements ScopeDeterminerInterface
                     continue;
                 }
                 if (is_dir($realDir)) {
-                    $results = $this->getAllPhpFiles($realDir, $results);
+                    $results = $this->phpFileFinder->findAll($dir, $results);
                 }
             }
         }
-        return $results;
-    }
-
-    /**
-     * Find all PHP files by recursively searching a directory
-     *
-     * @param string $dir Directory to search recursively
-     * @param string[] $results Array of file paths to merge with
-     * @return string[] File paths
-     */
-    private function getAllPhpFiles(string $dir, array $results = []): array
-    {
-        $files = scandir($dir);
-        if ($files === false) {
-            return $results;
-        }
-
-        foreach ($files as $value) {
-            $path = realpath($dir . DIRECTORY_SEPARATOR . $value);
-            if ($path === false) {
-                continue;
-            }
-
-            if (is_file($path) && $this->phpFileDeterminer->isPhp($path)) {
-                $results[] = $path;
-            } elseif (is_dir($path) && !in_array($value, ['.', '..'])) {
-                $results = $this->getAllPhpFiles($path, $results);
-            }
-        }
-
         return $results;
     }
 }
