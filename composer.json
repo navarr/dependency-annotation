@@ -46,6 +46,9 @@
             "dev-php8-annotation": "2.x-dev"
         }
     },
+    "bin": [
+        "depanno"
+    ],
     "archive": {
         "exclude": [
             ".github",
