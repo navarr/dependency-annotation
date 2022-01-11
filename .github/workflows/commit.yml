@@ -78,4 +78,6 @@ jobs:
         run: composer install
 
       - name: Check for Mutants
+        env:
+          INFECTION_BADGE_API_KEY: ${{ secrets.STRYKER_TOKEN }}
         run: vendor/bin/infection --threads=$(nproc) --no-progress --logger-github

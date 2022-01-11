@@ -5,6 +5,7 @@
 [![License](http://poser.pugx.org/navarr/dependency-annotation/license)](https://packagist.org/packages/navarr/dependency-annotation)  
 ![Tests](https://github.com/navarr/dependency-annotation/actions/workflows/commit.yml/badge.svg)
 ![Code Coverage](https://codecov.io/gh/navarr/dependency-annotation/branch/main/graph/badge.svg?token=BHTKOZZDR3)
+[![Mutation score](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fnavarr%2Fdependency-annotation%2Fmain)](https://dashboard.stryker-mutator.io/reports/github.com/navarr/dependency-annotation/main)
 
 This project supplies a Composer plugin that adds a command (`why-block`) that interprets a PHP `#[Dependency]`
  attribute.

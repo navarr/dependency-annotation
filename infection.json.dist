@@ -21,5 +21,10 @@
                 "Navarr\\Depends\\Parser\\AstParser::parse::83"
             ]
         }
+    },
+    "logs": {
+        "stryker": {
+            "report": "/^.*$/"
+        }
     }
 }
