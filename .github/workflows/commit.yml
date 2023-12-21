@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install Dependencies
-        run: composer2 install
+        run: composer install
 
       - name: Run PHPStan
         run: vendor/bin/phpstan
@@ -67,7 +67,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install Dependencies
-        run: composer2 install
+        run: composer install
 
       - name: PHP Code Sniffer
         run: vendor/bin/phpcs
