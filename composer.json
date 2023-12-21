@@ -4,7 +4,7 @@
     "type": "composer-plugin",
     "license": "MIT",
     "require": {
-        "php": "^7.1|^8",
+        "php": "^7.1|^8.1",
         "composer-plugin-api": "^2",
         "composer/composer": "^2",
         "composer/semver": "^1|^2|^3",
