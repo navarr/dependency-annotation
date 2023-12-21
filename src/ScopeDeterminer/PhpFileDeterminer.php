@@ -45,13 +45,13 @@ class PhpFileDeterminer
         // There are so many approaches we could take here, but we're going with this one:
 
         $mimeType = $this->mimeDeterminer->getMimeType($file);
-        if ($mimeType && in_array($mimeType, static::PHP_MIME_TYPES)) {
+        if ($mimeType && in_array($mimeType, self::PHP_MIME_TYPES)) {
             // Mime type is PHP.  That's good enough for me
             return true;
         }
 
         $parts = explode('.', $file);
-        if (in_array(end($parts), static::PHP_FILE_EXTENSIONS)) {
+        if (in_array(end($parts), self::PHP_FILE_EXTENSIONS)) {
             // Extension matches list - so it was probably intended to be PHP
             return true;
         }

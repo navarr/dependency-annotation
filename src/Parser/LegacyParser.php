@@ -51,7 +51,7 @@ class LegacyParser implements ParserInterface
     }
 
     /**
-     * @param string[][] $matches
+     * @param array<array<int, array<int, int|string>>> $matches
      * @param string $contents
      * @return DeclaredDependency[]
      */
@@ -59,15 +59,15 @@ class LegacyParser implements ParserInterface
     {
         $results = [];
 
-        $matchCount = count($matches[0]) ?? 0;
+        $matchCount = count($matches[0]) ?: 0;
         for ($match = 0; $match < $matchCount; ++$match) {
-            $package = strtolower($matches[static::INLINE_MATCH_PACKAGE][$match][0]);
-            $version = $matches[static::INLINE_MATCH_VERSION][$match][0];
+            $package = strtolower((string)$matches[self::INLINE_MATCH_PACKAGE][$match][0]);
+            $version = (string)$matches[self::INLINE_MATCH_VERSION][$match][0] ?: null;
 
             $line = substr_count(mb_substr($contents, 0, (int)$matches[0][$match][1]), "\n") + 1;
 
-            $reason = trim($matches[static::INLINE_MATCH_REASON][$match][0]) ?? 'No reason provided';
-            if (substr($reason, -2) === '*/') {
+            $reason = trim((string)$matches[self::INLINE_MATCH_REASON][$match][0]) ?: 'No reason provided';
+            if (str_ends_with($reason, '*/')) {
                 $reason = trim(substr($reason, 0, -2));
             }
 

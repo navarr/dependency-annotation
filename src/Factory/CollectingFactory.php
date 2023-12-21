@@ -13,6 +13,7 @@ use DI\DependencyException;
 use DI\NotFoundException;
 use Navarr\Attribute\Dependency;
 use PhpParser\ErrorHandler\Collecting;
+use RuntimeException;
 
 #[Dependency('php-di/php-di', '^6', 'Container::make')]
 #[Dependency('nikic/php-parser', '^4', 'Existence of Collecting error handler')]
@@ -32,6 +33,10 @@ class CollectingFactory
      */
     public function create(): Collecting
     {
-        return $this->container->make(Collecting::class);
+        $result = $this->container->make(Collecting::class);
+        if (!$result instanceof Collecting) {
+            throw new RuntimeException('Container did not return a Collecting');
+        }
+        return $result;
     }
 }

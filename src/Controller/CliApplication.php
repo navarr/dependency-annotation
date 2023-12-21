@@ -18,7 +18,7 @@ class CliApplication
 
     public static function execute(): int
     {
-        $application = new Application('DepAnno', static::VERSION);
+        $application = new Application('DepAnno', self::VERSION);
         $application->add(new WhyBlockCommandController());
         return $application->run();
     }

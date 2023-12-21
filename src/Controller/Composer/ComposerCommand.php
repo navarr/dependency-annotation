@@ -31,6 +31,7 @@ use Navarr\Depends\Proxy\WriterInterface;
 use Navarr\Depends\ScopeDeterminer\ComposerScopeDeterminer;
 use Navarr\Depends\ScopeDeterminer\ScopeDeterminerInterface;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -128,13 +129,13 @@ class ComposerCommand extends BaseCommand
         }
 
         $outputFormat = strtolower($outputFormat);
-        if (!in_array($outputFormat, static::ACCEPTABLE_FORMATS)) {
+        if (!in_array($outputFormat, self::ACCEPTABLE_FORMATS)) {
             $outputFormat = 'text';
         }
 
-        if ($input->getOption(static::ALL_DEPS)) {
+        if ($input->getOption(self::ALL_DEPS)) {
             $composerScope = ComposerScopeDeterminer::SCOPE_ALL_DEPENDENCIES;
-        } elseif ($input->getOption(static::ROOT_DEPS)) {
+        } elseif ($input->getOption(self::ROOT_DEPS)) {
             $composerScope = ComposerScopeDeterminer::SCOPE_ROOT_DEPENDENCIES;
         } else {
             $composerScope = ComposerScopeDeterminer::SCOPE_PROJECT_ONLY;
@@ -145,14 +146,21 @@ class ComposerCommand extends BaseCommand
             [
                 InputInterface::class => $input,
                 OutputInterface::class => $output,
-                IssueHandlerInterface::class => $input->getOption(static::FAIL_ON_ERROR)
+                IssueHandlerInterface::class => $input->getOption(self::FAIL_ON_ERROR)
                     ? FailOnIssueHandler::class
                     : NotifyOnIssueHandler::class,
                 Composer::class => $this->getComposer(true),
                 ParserInterface::class => static function (ContainerInterface $container) use ($input) {
-                    $parsers = [$container->get(AstParser::class)];
-                    if ($input->getOption(static::LEGACY_ANNOTATION)) {
-                        $parsers[] = $container->get(LegacyParser::class);
+                    $parser = $container->get(AstParser::class);
+                    if (!$parser instanceof ParserInterface) {
+                        throw new RuntimeException('AstParser not found');
+                    }
+                    $parsers = [$parser];
+                    if ($input->getOption(self::LEGACY_ANNOTATION)) {
+                        $legacyParser = $container->get(LegacyParser::class);
+                        if ($legacyParser instanceof ParserInterface) {
+                            $parsers[] = $legacyParser;
+                        }
                     }
                     return new ParserPool($parsers);
                 },
@@ -160,7 +168,7 @@ class ComposerCommand extends BaseCommand
                 ComposerScopeDeterminer::class => autowire(ComposerScopeDeterminer::class)
                     ->property('scope', $composerScope),
                 ScopeDeterminerInterface::class => autowire(ComposerScopeDeterminer::class),
-                OutputHandlerInterface::class => autowire(static::FORMAT_MAPPER[$outputFormat]),
+                OutputHandlerInterface::class => autowire(self::FORMAT_MAPPER[$outputFormat]),
             ]
         );
         $container = $containerBuilder->build();

@@ -11,7 +11,7 @@
         "symfony/console": "^5",
         "nikic/php-parser": "^4",
         "navarr/attribute-dependency": "^1.0.1",
-        "php-di/php-di": "^6"
+        "php-di/php-di": "^7"
     },
     "suggest": {
         "ext-fileinfo": "Use MIME types for PHP file detection",
@@ -23,7 +23,7 @@
         "roave/security-advisories": "dev-master",
         "phpstan/phpstan": "^1",
         "phpunit/phpunit": "^9.5",
-        "infection/infection": "^0.23.0",
+        "infection/infection": "^0.27.0",
         "squizlabs/php_codesniffer": "^3.6",
         "jetbrains/phpstorm-attributes": "^1.0"
     },
@@ -56,5 +56,10 @@
             ".gitattributes",
             ".env"
         ]
+    },
+    "config": {
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
     }
 }

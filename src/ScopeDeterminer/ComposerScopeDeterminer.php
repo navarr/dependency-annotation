@@ -112,7 +112,8 @@ class ComposerScopeDeterminer implements ScopeDeterminerInterface
      * Retrieve all PHP files out of the directories and files listed in the autoload directive
      *
      * @param string $basePath Base directory of the package who's autoload we're processing
-     * @param array<array> $autoload Result of {@see PackageInterface::getAutoload()}
+     * @param array<string, array<int|string, array<string>|string>> $autoload
+     *   Result of {@see PackageInterface::getAutoload()}
      * @param string[] $results Array of file paths to merge with
      * @return string[] File paths
      */
@@ -123,17 +124,22 @@ class ComposerScopeDeterminer implements ScopeDeterminerInterface
         array $results = []
     ): array {
         foreach ($autoload as $map) {
-            foreach ($map as $dir) {
-                $realDir = realpath($basePath . DIRECTORY_SEPARATOR . $dir);
-                if ($realDir === false) {
-                    continue;
+            foreach ($map as $dirs) {
+                if (is_string($dirs)) {
+                    $dirs = [$dirs];
                 }
-                if (is_file($realDir)) {
-                    $results[] = $realDir;
-                    continue;
-                }
-                if (is_dir($realDir)) {
-                    $results = $this->phpFileFinder->findAll($dir, $results);
+                foreach ($dirs as $dir) {
+                    $realDir = realpath($basePath . DIRECTORY_SEPARATOR . $dir);
+                    if ($realDir === false) {
+                        continue;
+                    }
+                    if (is_file($realDir)) {
+                        $results[] = $realDir;
+                        continue;
+                    }
+                    if (is_dir($realDir)) {
+                        $results = $this->phpFileFinder->findAll($dir, $results);
+                    }
                 }
             }
         }

@@ -13,6 +13,7 @@ use DI\DependencyException;
 use DI\NotFoundException;
 use Navarr\Attribute\Dependency;
 use PhpParser\NodeTraverser;
+use RuntimeException;
 
 #[Dependency('php-di/php-di', '^6', 'Container::make')]
 #[Dependency('nikic/php-parser', '^4', 'Existence of NodeTraverser')]
@@ -33,6 +34,10 @@ class NodeTraverserFactory
      */
     public function create(array $args = []): NodeTraverser
     {
-        return $this->container->make(NodeTraverser::class, $args);
+        $result = $this->container->make(NodeTraverser::class, $args);
+        if (!$result instanceof NodeTraverser) {
+            throw new RuntimeException('Container did not return a NodeTraverser');
+        }
+        return $result;
     }
 }

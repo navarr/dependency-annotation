@@ -87,6 +87,7 @@ class AstParser implements ParserInterface
 
         $traverser->traverse($ast);
 
+        /** @var Attribute[] $attributes Since we have a filter callback, this will always be an Attribute */
         $attributes = $finder->getFoundNodes();
 
         $argIndex = [

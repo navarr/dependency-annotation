@@ -13,6 +13,7 @@ use DI\DependencyException;
 use DI\NotFoundException;
 use Navarr\Attribute\Dependency;
 use PhpParser\NodeVisitor\FindingVisitor;
+use RuntimeException;
 
 #[Dependency('php-di/php-di', '^6', 'Container::make')]
 #[Dependency('nikic/php-parser', '^4', 'Existence of FindingVisitor')]
@@ -33,6 +34,10 @@ class FindingVisitorFactory
      */
     public function create(array $args = []): FindingVisitor
     {
-        return $this->container->make(FindingVisitor::class, $args);
+        $result = $this->container->make(FindingVisitor::class, $args);
+        if (!$result instanceof FindingVisitor) {
+            throw new RuntimeException('Container did not return a FindingVisitor');
+        }
+        return $result;
     }
 }
